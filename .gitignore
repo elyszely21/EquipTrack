@@ -1,3 +1,15 @@
-__pycache__/
+# Environment variables
+.env
 
+# Virtual Environment
+.venv/
+
+# PyCharm
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# SQLite
 db.sqlite3
