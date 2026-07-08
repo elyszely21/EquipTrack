@@ -10,10 +10,13 @@ def create_profile(sender, instance, created, **kwargs):
 
     if created:
 
+        role = UserProfile.ROLE_ADMIN if instance.is_superuser else UserProfile.ROLE_BORROWER
+
         UserProfile.objects.create(
             user=instance,
             contact_number="",
-            role="staff"
+            role=role,
+            status=UserProfile.STATUS_ACTIVE
         )
 
 
