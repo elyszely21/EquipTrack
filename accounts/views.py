@@ -1,58 +1,136 @@
-from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
-from django.views.decorators.http import require_http_methods
+from django.contrib.auth.models import User
+from django.contrib import messages
 
-from .forms import LoginForm, RegisterForm
+from .forms import UserRegistrationForm, LoginForm
+from .models import UserProfile
 
-
-def home_redirect(request):
-    if request.user.is_authenticated:
-        return redirect("dashboard")
+def home(request):
     return redirect("login")
 
-
-@require_http_methods(["GET", "POST"])
-def login_view(request):
-    if request.user.is_authenticated:
-        return redirect("dashboard")
-
-    form = LoginForm(request, data=request.POST or None)
+def register(request):
 
     if request.method == "POST":
+
+        form = UserRegistrationForm(request.POST)
+
         if form.is_valid():
-            login(request, form.get_user())
-            if not form.cleaned_data.get("remember_me"):
-                request.session.set_expiry(0)
-            messages.success(request, "You have logged in successfully.")
-            return redirect("dashboard")
 
-        messages.error(request, "Invalid username or password. Please try again.")
+            user = User.objects.create_user(
 
-    return render(request, "registration/login.html", {"form": form})
+                username=form.cleaned_data["username"],
 
+                first_name=form.cleaned_data["first_name"],
 
-@require_http_methods(["GET", "POST"])
-def register_view(request):
-    if request.user.is_authenticated:
-        return redirect("dashboard")
+                last_name=form.cleaned_data["last_name"],
 
-    form = RegisterForm(request.POST or None)
+                email=form.cleaned_data["email"],
 
-    if request.method == "POST":
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Registration successful. You can now log in.")
+                password=form.cleaned_data["password"]
+
+            )
+
+            profile = user.profile
+            profile.middle_name = form.cleaned_data["middle_name"]
+            profile.suffix = form.cleaned_data["suffix"]
+            profile.contact_number = form.cleaned_data["contact_number"]
+            profile.role = form.cleaned_data["role"]
+            profile.save()
+
+            messages.success(
+                request,
+                "Account created successfully."
+            )
+
             return redirect("login")
 
-        messages.error(request, "Please correct the errors below.")
+    else:
 
-    return render(request, "registration/register.html", {"form": form})
+        form = UserRegistrationForm()
 
+    return render(
+        request,
+        "registration/register.html",
+        {
+            "form": form
+        }
+    )
+
+
+def login_view(request):
+
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+
+    if request.method == "POST":
+
+        form = LoginForm(request, data=request.POST)
+
+        if form.is_valid():
+
+            username = form.cleaned_data["username"]
+
+            password = form.cleaned_data["password"]
+
+            user = authenticate(
+
+                username=username,
+
+                password=password
+
+            )
+
+            if user is not None:
+
+                login(request, user)
+
+                return redirect("dashboard")
+
+            messages.error(
+                request,
+                "Invalid username or password."
+            )
+
+    else:
+
+        form = LoginForm()
+
+    return render(
+        request,
+        "registration/login.html",
+        {
+            "form": form
+        }
+    )
+
+@login_required
+def dashboard(request):
+
+    profile = request.user.profile
+
+    context = {
+
+        "user": request.user,
+
+        "profile": profile
+
+    }
+
+    return render(
+
+        request,
+
+        "dashboard/index.html",
+
+        context
+
+    )
 
 @login_required
 def logout_view(request):
+
     logout(request)
-    messages.success(request, "You have logged out successfully.")
+
     return redirect("login")
