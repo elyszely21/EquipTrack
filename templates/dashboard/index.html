@@ -62,39 +62,66 @@
                     Profile
                 </a>
             {% elif profile.role == "staff" %}
-                <a href="#" class="sidebar-link">
+                <a href="{% url 'dashboard' %}" class="sidebar-link">
+                    <i class="bi bi-speedometer2"></i>
+                    Dashboard
+                </a>
+
+                <a href="{% url 'equipment_list' %}" class="sidebar-link">
                     <i class="bi bi-hdd-stack"></i>
                     Equipment
                 </a>
+
                 <a href="#" class="sidebar-link">
                     <i class="bi bi-arrow-left-right"></i>
                     Borrow Requests
                 </a>
+
                 <a href="#" class="sidebar-link">
                     <i class="bi bi-arrow-return-left"></i>
-                    Returns
-                </a>
-                <a href="#" class="sidebar-link">
-                    <i class="bi bi-boxes"></i>
-                    Inventory
+                    Return Records
                 </a>
             {% elif profile.role == "admin" %}
+                <a href="{% url 'dashboard' %}" class="sidebar-link">
+                     <i class="bi bi-speedometer2"></i>
+                    Dashboard
+                </a>
+
                 <a href="#" class="sidebar-link">
                     <i class="bi bi-people"></i>
                     User Management
                 </a>
+
+                <a href="{% url 'staff_list' %}" class="sidebar-link">
+                    <i class="bi bi-person-badge"></i>
+                    Staff Management
+                </a>
+
                 <a href="{% url 'staff_approval' %}" class="sidebar-link">
                     <i class="bi bi-person-check"></i>
                     Staff Approval
                 </a>
-                <a href="#" class="sidebar-link">
+
+                <a href="{% url 'equipment_list' %}" class="sidebar-link">
                     <i class="bi bi-hdd-stack"></i>
                     Equipment
                 </a>
+
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-arrow-left-right"></i>
+                    Borrow Requests
+                </a>
+
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-arrow-return-left"></i>
+                    Return Records
+                </a>
+
                 <a href="#" class="sidebar-link">
                     <i class="bi bi-clipboard-data"></i>
                     Reports
                 </a>
+
                 <a href="#" class="sidebar-link">
                     <i class="bi bi-gear"></i>
                     System Settings
