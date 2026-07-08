@@ -1,0 +1,85 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}
+Equipment Details
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+<div class="card shadow">
+
+<div class="card-header">
+
+<h3>{{ equipment.name }}</h3>
+
+</div>
+
+<div class="card-body">
+
+<p>
+
+<strong>Category</strong>
+
+<br>
+
+{{ equipment.category }}
+
+</p>
+
+<p>
+
+<strong>Description</strong>
+
+<br>
+
+{{ equipment.description }}
+
+</p>
+
+<p>
+
+<strong>Total Quantity</strong>
+
+<br>
+
+{{ equipment.quantity_total }}
+
+</p>
+
+<p>
+
+<strong>Available Quantity</strong>
+
+<br>
+
+{{ equipment.quantity_available }}
+
+</p>
+
+<p>
+
+<strong>Status</strong>
+
+<br>
+
+{{ equipment.status }}
+
+</p>
+
+<a href="{% url 'equipment_list' %}"
+
+class="btn btn-primary">
+
+Back
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

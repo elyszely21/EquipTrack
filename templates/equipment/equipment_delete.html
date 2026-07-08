@@ -1,0 +1,61 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}
+Delete Equipment
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+<div class="card shadow">
+
+<div class="card-header bg-danger text-white">
+
+Delete Equipment
+
+</div>
+
+<div class="card-body">
+
+<p>
+
+Are you sure you want to delete
+
+<strong>
+
+{{ equipment.name }}
+
+</strong>
+
+?
+
+</p>
+
+<form method="POST">
+
+{% csrf_token %}
+
+<button class="btn btn-danger">
+
+Delete
+
+</button>
+
+<a href="{% url 'equipment_list' %}"
+
+class="btn btn-secondary">
+
+Cancel
+
+</a>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}
