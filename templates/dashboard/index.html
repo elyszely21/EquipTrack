@@ -40,18 +40,66 @@
                 <i class="bi bi-speedometer2"></i>
                 Dashboard
             </a>
-            <a href="#" class="sidebar-link">
-                <i class="bi bi-hdd-stack"></i>
-                Equipment
-            </a>
-            <a href="#" class="sidebar-link">
-                <i class="bi bi-arrow-left-right"></i>
-                Borrowing
-            </a>
-            <a href="#" class="sidebar-link">
-                <i class="bi bi-clock-history"></i>
-                Reports
-            </a>
+            {% if profile.role == "borrower" %}
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-search"></i>
+                    Browse Equipment
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-bag-plus"></i>
+                    Borrow Equipment
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-list-check"></i>
+                    My Requests
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-clock-history"></i>
+                    Borrow History
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-person"></i>
+                    Profile
+                </a>
+            {% elif profile.role == "staff" %}
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-hdd-stack"></i>
+                    Equipment
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-arrow-left-right"></i>
+                    Borrow Requests
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-arrow-return-left"></i>
+                    Returns
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-boxes"></i>
+                    Inventory
+                </a>
+            {% elif profile.role == "admin" %}
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-people"></i>
+                    User Management
+                </a>
+                <a href="{% url 'staff_approval' %}" class="sidebar-link">
+                    <i class="bi bi-person-check"></i>
+                    Staff Approval
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-hdd-stack"></i>
+                    Equipment
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-clipboard-data"></i>
+                    Reports
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-gear"></i>
+                    System Settings
+                </a>
+            {% endif %}
         </aside>
 
         <main class="dashboard-main">
@@ -68,7 +116,15 @@
                 <div>
                     <p class="section-kicker">Inventory Overview</p>
                     <h1>Welcome, {{ request.user.first_name|default:request.user.username }}</h1>
-                    <p>Monitor equipment availability, borrowing activity, and return status from one workspace.</p>
+                    <p>
+                        {% if profile.role == "borrower" %}
+                            Browse equipment, submit borrow requests, and review your borrowing history.
+                        {% elif profile.role == "staff" %}
+                            Manage equipment, process borrow requests, and record returns.
+                        {% elif profile.role == "admin" %}
+                            Review staff registrations, manage users, and monitor system activity.
+                        {% endif %}
+                    </p>
                 </div>
                 <div class="welcome-icon">
                     <i class="bi bi-clipboard-data"></i>
@@ -121,6 +177,66 @@
                     </div>
                 </div>
             </section>
+
+            {% if profile.role == "admin" %}
+                <section class="mt-4">
+                    <div class="card dashboard-card">
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                                <div>
+                                    <h2 class="h5 mb-1">Pending Staff Registrations</h2>
+                                    <p class="text-muted mb-0">Approve or reject staff accounts before they can access staff tools.</p>
+                                </div>
+                                <a href="{% url 'staff_approval' %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-person-check me-1"></i>View All
+                                </a>
+                            </div>
+
+                            <div class="table-responsive mt-3">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Username</th>
+                                            <th>Email</th>
+                                            <th>Contact Number</th>
+                                            <th>Registration Date</th>
+                                            <th>Status</th>
+                                            <th class="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for staff in pending_staff %}
+                                            <tr>
+                                                <td>{{ staff.user.get_full_name|default:staff.user.username }}</td>
+                                                <td>{{ staff.user.username }}</td>
+                                                <td>{{ staff.user.email|default:"-" }}</td>
+                                                <td>{{ staff.contact_number|default:"-" }}</td>
+                                                <td>{{ staff.user.date_joined|date:"M d, Y" }}</td>
+                                                <td><span class="badge text-bg-warning">Pending</span></td>
+                                                <td class="text-end">
+                                                    <form method="post" action="{% url 'approve_staff' staff.id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                                                    </form>
+                                                    <form method="post" action="{% url 'reject_staff' staff.id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        {% empty %}
+                                            <tr>
+                                                <td colspan="7" class="text-center text-muted py-4">No pending staff registrations.</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            {% endif %}
         </main>
     </div>
 
