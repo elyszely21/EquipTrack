@@ -67,3 +67,29 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.get_full_name() or self.user.username
+
+
+class Staff(models.Model):
+    staff_id = models.AutoField(primary_key=True)
+
+    user_profile = models.OneToOneField(
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name="staff"
+    )
+
+    department = models.CharField(max_length=100)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["user_profile__user__last_name"]
+
+    def __str__(self):
+        return f"{self.user_profile.user.get_full_name()} ({self.department})"
+
+
+
+

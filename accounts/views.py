@@ -8,6 +8,12 @@ from django.http import HttpResponseForbidden
 from .forms import UserRegistrationForm, LoginForm
 from .models import UserProfile
 
+from django.shortcuts import get_object_or_404
+from django.db.models import Q
+
+from .forms import StaffForm
+from .models import Staff
+
 def home(request):
     return redirect("login")
 
@@ -259,3 +265,150 @@ def reject_staff(request, profile_id):
     messages.success(request, "Staff registration rejected successfully.")
 
     return redirect("staff_approval")
+
+@login_required
+def staff_list(request):
+
+    if not is_admin_user(request.user):
+        return HttpResponseForbidden()
+
+    search = request.GET.get("search")
+
+    staff = Staff.objects.select_related("user").all()
+
+    if search:
+        staff = staff.filter(
+            Q(user__first_name__icontains=search) |
+            Q(user__last_name__icontains=search) |
+            Q(user__username__icontains=search) |
+            Q(department__icontains=search)
+        )
+
+    context = {
+
+        "staff": staff,
+        "search": search,
+
+    }
+
+    return render(
+        request,
+        "staff/staff_list.html",
+        context,
+    )
+
+@login_required
+def staff_detail(request, pk):
+
+    if not is_admin_user(request.user):
+        return HttpResponseForbidden()
+
+    staff = get_object_or_404(
+        Staff,
+        pk=pk
+    )
+
+    return render(
+        request,
+        "staff/staff_detail.html",
+        {
+            "staff": staff
+        }
+    )
+
+@login_required
+def staff_detail(request, pk):
+
+    if not is_admin_user(request.user):
+        return HttpResponseForbidden()
+
+    staff = get_object_or_404(
+        Staff,
+        pk=pk
+    )
+
+    return render(
+        request,
+        "staff/staff_detail.html",
+        {
+            "staff": staff
+        }
+    )
+
+@login_required
+def staff_edit(request, pk):
+
+    if not is_admin_user(request.user):
+        return HttpResponseForbidden()
+
+    staff = get_object_or_404(
+        Staff,
+        pk=pk
+    )
+
+    if request.method == "POST":
+
+        form = StaffForm(
+            request.POST,
+            instance=staff
+        )
+
+        if form.is_valid():
+
+            form.save()
+
+            messages.success(
+                request,
+                "Staff updated successfully."
+            )
+
+            return redirect(
+                "staff_list"
+            )
+
+    else:
+
+        form = StaffForm(
+            instance=staff
+        )
+
+    return render(
+        request,
+        "staff/staff_form.html",
+        {
+            "form": form,
+            "staff": staff
+        }
+    )
+
+@login_required
+def staff_delete(request, pk):
+
+    if not is_admin_user(request.user):
+        return HttpResponseForbidden()
+
+    staff = get_object_or_404(
+        Staff,
+        pk=pk
+    )
+
+    if request.method == "POST":
+
+        staff.delete()
+
+        messages.success(
+            request,
+            "Staff deleted successfully."
+        )
+
+        return redirect(
+            "staff_list"
+        )
+
+    return render(
+        request,
+        "staff/staff_delete.html",
+        {
+            "staff": staff
+        }
+    )

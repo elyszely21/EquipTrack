@@ -1,0 +1,33 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Edit Staff{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h2>Edit Staff</h2>
+
+<form method="POST">
+
+{% csrf_token %}
+
+{{ form.as_p }}
+
+<button class="btn btn-success">
+
+Save
+
+</button>
+
+<a href="{% url 'staff_list' %}" class="btn btn-secondary">
+
+Cancel
+
+</a>
+
+</form>
+
+</div>
+
+{% endblock %}
