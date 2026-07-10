@@ -1,0 +1,155 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}
+
+Reports
+
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+System Reports
+
+</h2>
+
+<div class="row">
+
+<div class="col-md-3 mb-3">
+
+<div class="card shadow">
+
+<div class="card-body text-center">
+
+<h6>Total Equipment</h6>
+
+<h2>{{ equipment_count }}</h2>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-md-3 mb-3">
+
+<div class="card shadow">
+
+<div class="card-body text-center">
+
+<h6>Available Equipment</h6>
+
+<h2>{{ available_equipment }}</h2>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-md-3 mb-3">
+
+<div class="card shadow">
+
+<div class="card-body text-center">
+
+<h6>Total Borrow Requests</h6>
+
+<h2>{{ borrow_count }}</h2>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-md-3 mb-3">
+
+<div class="card shadow">
+
+<div class="card-body text-center">
+
+<h6>Pending Requests</h6>
+
+<h2>{{ pending_count }}</h2>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<hr>
+
+<div class="row">
+
+<div class="col-md-3 mb-3">
+
+<div class="card border-success">
+
+<div class="card-body text-center">
+
+<h6>Approved</h6>
+
+<h2>{{ approved_count }}</h2>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-md-3 mb-3">
+
+<div class="card border-primary">
+
+<div class="card-body text-center">
+
+<h6>Returned</h6>
+
+<h2>{{ returned_count }}</h2>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-md-3 mb-3">
+
+<div class="card border-warning">
+
+<div class="card-body text-center">
+
+<h6>Staff Users</h6>
+
+<h2>{{ staff_count }}</h2>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-md-3 mb-3">
+
+<div class="card border-info">
+
+<div class="card-body text-center">
+
+<h6>Borrowers</h6>
+
+<h2>{{ borrower_count }}</h2>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

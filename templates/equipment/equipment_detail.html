@@ -6,79 +6,103 @@ Equipment Details
 
 {% block content %}
 
-<div class="container">
+<div class="container-fluid">
 
-<div class="card shadow">
+    <div class="card shadow">
 
-<div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
 
-<h3>{{ equipment.name }}</h3>
+            <h3>Equipment Details</h3>
 
-</div>
+            <a href="{% url 'equipment_list' %}" class="btn btn-secondary">
+                Back
+            </a>
 
-<div class="card-body">
+        </div>
 
-<p>
+        <div class="card-body">
 
-<strong>Category</strong>
+            <table class="table table-bordered">
 
-<br>
+                <tr>
+                    <th width="30%">Equipment ID</th>
+                    <td>{{ equipment.equipment_id }}</td>
+                </tr>
 
-{{ equipment.category }}
+                <tr>
+                    <th>Name</th>
+                    <td>{{ equipment.name }}</td>
+                </tr>
 
-</p>
+                <tr>
+                    <th>Category</th>
+                    <td>{{ equipment.category }}</td>
+                </tr>
 
-<p>
+                <tr>
+                    <th>Description</th>
+                    <td>{{ equipment.description }}</td>
+                </tr>
 
-<strong>Description</strong>
+                <tr>
+                    <th>Total Quantity</th>
+                    <td>{{ equipment.quantity_total }}</td>
+                </tr>
 
-<br>
+                <tr>
+                    <th>Available Quantity</th>
+                    <td>{{ equipment.quantity_available }}</td>
+                </tr>
 
-{{ equipment.description }}
+                <tr>
+                    <th>Status</th>
 
-</p>
+                    <td>
 
-<p>
+                        {% if equipment.status == "available" %}
+                            <span class="badge bg-success">
+                                Available
+                            </span>
 
-<strong>Total Quantity</strong>
+                        {% elif equipment.status == "maintenance" %}
+                            <span class="badge bg-warning text-dark">
+                                Maintenance
+                            </span>
 
-<br>
+                        {% else %}
+                            <span class="badge bg-danger">
+                                Unavailable
+                            </span>
 
-{{ equipment.quantity_total }}
+                        {% endif %}
 
-</p>
+                    </td>
 
-<p>
+                </tr>
 
-<strong>Available Quantity</strong>
+            </table>
 
-<br>
+            {% if profile.role == "admin" or profile.role == "staff" %}
 
-{{ equipment.quantity_available }}
+            <a href="{% url 'equipment_update' equipment.equipment_id %}"
+               class="btn btn-warning">
 
-</p>
+                Edit
 
-<p>
+            </a>
 
-<strong>Status</strong>
+            <a href="{% url 'equipment_delete' equipment.equipment_id %}"
+               class="btn btn-danger">
 
-<br>
+                Delete
 
-{{ equipment.status }}
+            </a>
 
-</p>
+            {% endif %}
 
-<a href="{% url 'equipment_list' %}"
+        </div>
 
-class="btn btn-primary">
-
-Back
-
-</a>
-
-</div>
-
-</div>
+    </div>
 
 </div>
 

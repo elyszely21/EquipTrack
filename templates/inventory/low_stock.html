@@ -1,0 +1,73 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Low Stock{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+Low Stock Equipment
+
+</h2>
+
+<div class="card shadow">
+
+<div class="card-body">
+
+<table class="table table-striped">
+
+<thead>
+
+<tr>
+
+<th>Name</th>
+
+<th>Available</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for item in inventory %}
+
+<tr>
+
+<td>{{ item.name }}</td>
+
+<td>
+
+<span class="badge bg-danger">
+
+{{ item.quantity_available }}
+
+</span>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="2" class="text-center">
+
+No low stock equipment.
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+{% endblock %}
