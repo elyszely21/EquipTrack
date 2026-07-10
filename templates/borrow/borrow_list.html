@@ -1,0 +1,229 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Borrow Requests{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold">
+
+                Borrow Requests
+
+            </h2>
+
+            <p class="text-muted mb-0">
+
+                Manage all equipment borrowing requests.
+
+            </p>
+
+        </div>
+
+        {% if profile.role == "borrower" %}
+
+        <a href="{% url 'borrow_create' %}"
+           class="btn btn-primary">
+
+            <i class="bi bi-plus-circle"></i>
+
+            New Request
+
+        </a>
+
+        {% endif %}
+
+    </div>
+
+    <div class="card shadow border-0">
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead class="table-dark">
+
+                        <tr>
+
+                            <th>ID</th>
+
+                            <th>Borrower</th>
+
+                            <th>Date Requested</th>
+
+                            <th>Status</th>
+
+                            <th width="320">Actions</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    {% for borrow in borrow_requests %}
+
+                        <tr>
+
+                            <td>
+
+                                {{ borrow.request_id }}
+
+                            </td>
+
+                            <td>
+
+                                {{ borrow.user.get_full_name|default:borrow.user.username }}
+
+                            </td>
+
+                            <td>
+
+                                {{ borrow.request_date|date:"M d, Y h:i A" }}
+
+                            </td>
+
+                            <td>
+
+                                {% if borrow.status == "pending" %}
+
+                                    <span class="badge bg-warning text-dark">
+
+                                        Pending
+
+                                    </span>
+
+                                {% elif borrow.status == "approved" %}
+
+                                    <span class="badge bg-success">
+
+                                        Approved
+
+                                    </span>
+
+                                {% elif borrow.status == "rejected" %}
+
+                                    <span class="badge bg-danger">
+
+                                        Rejected
+
+                                    </span>
+
+                                {% elif borrow.status == "returned" %}
+
+                                    <span class="badge bg-info">
+
+                                        Returned
+
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                <a href="{% url 'borrow_detail' borrow.request_id %}"
+                                   class="btn btn-sm btn-primary">
+
+                                    <i class="bi bi-eye"></i>
+
+                                    View
+
+                                </a>
+
+                                {% if profile.role == "borrower" and borrow.status == "pending" %}
+
+                                    <a href="{% url 'borrow_delete' borrow.request_id %}"
+                                       class="btn btn-sm btn-danger">
+
+                                        <i class="bi bi-trash"></i>
+
+                                        Delete
+
+                                    </a>
+
+                                {% endif %}
+
+                                {% if profile.role == "admin" and borrow.status == "pending" %}
+
+                                    <a href="{% url 'approve_borrow' borrow.request_id %}"
+                                       class="btn btn-sm btn-success">
+
+                                        <i class="bi bi-check-circle"></i>
+
+                                        Approve
+
+                                    </a>
+
+                                    <a href="{% url 'reject_borrow' borrow.request_id %}"
+                                       class="btn btn-sm btn-danger">
+
+                                        <i class="bi bi-x-circle"></i>
+
+                                        Reject
+
+                                    </a>
+
+                                {% endif %}
+
+                                {% if profile.role == "staff" or profile.role == "admin" %}
+
+                                    {% if borrow.status == "approved" %}
+
+                                        <a href="{% url 'create_return' borrow.request_id %}"
+                                           class="btn btn-sm btn-warning">
+
+                                            <i class="bi bi-arrow-return-left"></i>
+
+                                            Return
+
+                                        </a>
+
+                                    {% endif %}
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+
+                            <td colspan="5" class="text-center py-5">
+
+                                <i class="bi bi-inbox display-5 text-muted"></i>
+
+                                <h5 class="mt-3">
+
+                                    No borrow requests found.
+
+                                </h5>
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

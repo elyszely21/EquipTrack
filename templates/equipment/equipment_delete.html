@@ -6,55 +6,105 @@ Delete Equipment
 
 {% block content %}
 
-<div class="container">
+<div class="container-fluid">
 
-<div class="card shadow">
+    <div class="card shadow">
 
-<div class="card-header bg-danger text-white">
+        <div class="card-header bg-danger text-white">
 
-Delete Equipment
+            <h3>
 
-</div>
+                Delete Equipment
 
-<div class="card-body">
+            </h3>
 
-<p>
+        </div>
 
-Are you sure you want to delete
+        <div class="card-body">
 
-<strong>
+            <div class="alert alert-warning">
 
-{{ equipment.name }}
+                <h5>
 
-</strong>
+                    Are you sure you want to delete this equipment?
 
-?
+                </h5>
 
-</p>
+            </div>
 
-<form method="POST">
+            <table class="table table-bordered">
 
-{% csrf_token %}
+                <tr>
 
-<button class="btn btn-danger">
+                    <th width="30%">
 
-Delete
+                        Name
 
-</button>
+                    </th>
 
-<a href="{% url 'equipment_list' %}"
+                    <td>
 
-class="btn btn-secondary">
+                        {{ equipment.name }}
 
-Cancel
+                    </td>
 
-</a>
+                </tr>
 
-</form>
+                <tr>
 
-</div>
+                    <th>
 
-</div>
+                        Category
+
+                    </th>
+
+                    <td>
+
+                        {{ equipment.category }}
+
+                    </td>
+
+                </tr>
+
+                <tr>
+
+                    <th>
+
+                        Available Quantity
+
+                    </th>
+
+                    <td>
+
+                        {{ equipment.quantity_available }}
+
+                    </td>
+
+                </tr>
+
+            </table>
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                <button class="btn btn-danger">
+
+                    Delete Equipment
+
+                </button>
+
+                <a href="{% url 'equipment_list' %}" class="btn btn-secondary">
+
+                    Cancel
+
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
 
 </div>
 

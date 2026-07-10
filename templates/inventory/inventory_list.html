@@ -1,0 +1,85 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Inventory{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+Inventory
+
+</h2>
+
+<div class="card shadow">
+
+<div class="card-body">
+
+<table class="table table-bordered">
+
+<thead>
+
+<tr>
+
+<th>Name</th>
+
+<th>Category</th>
+
+<th>Total</th>
+
+<th>Available</th>
+
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for item in inventory %}
+
+<tr>
+
+<td>{{ item.name }}</td>
+
+<td>{{ item.category }}</td>
+
+<td>{{ item.quantity_total }}</td>
+
+<td>{{ item.quantity_available }}</td>
+
+<td>
+
+<span class="badge bg-primary">
+
+{{ item.status }}
+
+</span>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="5" class="text-center">
+
+No inventory available.
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+{% endblock %}
