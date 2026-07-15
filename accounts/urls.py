@@ -11,9 +11,6 @@ urlpatterns = [
     path("register/", views.register, name="register"),
     path("logout/", views.logout_view, name="logout"),
 
-    # Dashboard
-    path("dashboard/", views.dashboard, name="dashboard"),
-
     # Staff Approval
     path(
         "staff-approval/",

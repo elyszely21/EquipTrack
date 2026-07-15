@@ -1,29 +1,60 @@
 {% extends "dashboard/base.html" %}
 
-{% block title %}Staff Details{% endblock %}
+{% block title %}Staff Details | EquipTrack{% endblock %}
 
 {% block content %}
 
-<div class="container mt-4">
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'staff_list' %}">Staff</a></li>
+        <li class="breadcrumb-item active">Details</li>
+    </ol>
+</nav>
 
-<h2>Staff Details</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Staff Details</h2>
+    <a href="{% url 'staff_list' %}" class="btn btn-secondary">Back</a>
+</div>
 
-<hr>
+<div class="card shadow-sm border-0" style="max-width:640px;">
+    <div class="card-body">
+        <table class="table table-bordered mb-0">
+            <tr>
+                <th width="35%">Staff ID</th>
+                <td>{{ staff.staff_id }}</td>
+            </tr>
+            <tr>
+                <th>Full Name</th>
+                <td>{{ staff.user_profile.user.get_full_name|default:staff.user_profile.user.username }}</td>
+            </tr>
+            <tr>
+                <th>Username</th>
+                <td>{{ staff.user_profile.user.username }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ staff.user_profile.user.email|default:"—" }}</td>
+            </tr>
+            <tr>
+                <th>Contact</th>
+                <td>{{ staff.user_profile.contact_number|default:"—" }}</td>
+            </tr>
+            <tr>
+                <th>Department</th>
+                <td>{{ staff.department }}</td>
+            </tr>
+            <tr>
+                <th>Position</th>
+                <td>{{ staff.user_profile.position|default:"—" }}</td>
+            </tr>
+        </table>
 
-<p><strong>Full Name:</strong> {{ staff.user.get_full_name }}</p>
-
-<p><strong>Username:</strong> {{ staff.user.username }}</p>
-
-<p><strong>Email:</strong> {{ staff.user.email }}</p>
-
-<p><strong>Department:</strong> {{ staff.department }}</p>
-
-<a href="{% url 'staff_list' %}" class="btn btn-secondary">
-
-Back
-
-</a>
-
+        <div class="mt-3 d-flex gap-2">
+            <a href="{% url 'staff_edit' staff.staff_id %}" class="btn btn-warning">Edit</a>
+            <a href="{% url 'staff_delete' staff.staff_id %}" class="btn btn-danger">Delete</a>
+        </div>
+    </div>
 </div>
 
 {% endblock %}

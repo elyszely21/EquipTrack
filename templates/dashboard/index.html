@@ -1,276 +1,403 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | EquipTrack</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="{% static 'css/style.css' %}" rel="stylesheet">
-</head>
-<body class="dashboard-page">
-    <nav class="navbar navbar-expand-lg dashboard-navbar">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'dashboard' %}">
-                <span class="brand-mark-sm"><i class="bi bi-box-seam"></i></span>
-                EquipTrack
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#dashboardNav" aria-controls="dashboardNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="dashboardNav">
-                <div class="ms-auto d-flex align-items-lg-center gap-3 mt-3 mt-lg-0">
-                    <span class="navbar-user">
-                        <i class="bi bi-person-circle me-1"></i>
-                        {{ request.user.get_full_name|default:request.user.username }}
-                    </span>
-                    <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">
-                        <i class="bi bi-box-arrow-right me-1"></i>Logout
-                    </a>
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+
+{% block title %}Dashboard | EquipTrack{% endblock %}
+
+{% block content %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item active">Dashboard</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold mb-1">Welcome, {{ request.user.first_name|default:request.user.username }}</h2>
+        <p class="text-muted mb-0">
+            {% if profile.role == "borrower" %}
+                Browse equipment, submit borrow requests, and track returns.
+            {% elif profile.role == "staff" %}
+                Manage inventory, process borrow requests, and record returns.
+            {% else %}
+                Monitor system activity, approvals, and equipment statistics.
+            {% endif %}
+        </p>
+    </div>
+    <a href="{% url 'profile' %}" class="btn btn-outline-primary">
+        <i class="bi bi-person-circle me-1"></i>My Profile
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total Equipment</div>
+                <div class="fs-3 fw-bold text-primary">{{ total_equipment }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Available</div>
+                <div class="fs-3 fw-bold text-success">{{ available_equipment }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Unavailable</div>
+                <div class="fs-3 fw-bold text-danger">{{ unavailable_equipment }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Maintenance</div>
+                <div class="fs-3 fw-bold text-warning">{{ maintenance_equipment }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Low Stock</div>
+                <div class="fs-3 fw-bold text-warning">{{ low_stock_equipment }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Out of Stock</div>
+                <div class="fs-3 fw-bold text-danger">{{ out_of_stock_equipment }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Pending Requests</div>
+                <div class="fs-3 fw-bold">{{ pending_borrows }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Approved</div>
+                <div class="fs-3 fw-bold text-success">{{ approved_borrows }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Rejected</div>
+                <div class="fs-3 fw-bold text-danger">{{ rejected_borrows }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Returned</div>
+                <div class="fs-3 fw-bold text-info">{{ returned_borrows }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Borrowers</div>
+                <div class="fs-3 fw-bold">{{ total_borrowers }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Active Staff</div>
+                <div class="fs-3 fw-bold">{{ total_staff }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Pending Staff</div>
+                <div class="fs-3 fw-bold text-warning">{{ pending_staff }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-semibold">Borrow Status</div>
+            <div class="card-body">
+                <canvas id="borrowStatusChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-semibold">Equipment Availability</div>
+            <div class="card-body">
+                <canvas id="equipmentChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-semibold">Monthly Borrow Requests</div>
+            <div class="card-body">
+                <canvas id="monthlyBorrowChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-semibold">Monthly Returns</div>
+            <div class="card-body">
+                <canvas id="monthlyReturnChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-semibold">Recently Borrowed</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Borrower</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for borrow in recent_borrows %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'borrow_detail' borrow.request_id %}">
+                                            #{{ borrow.request_id }}
+                                        </a>
+                                    </td>
+                                    <td>{{ borrow.user.get_full_name|default:borrow.user.username }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if borrow.status == 'pending' %}warning text-dark{% elif borrow.status == 'approved' %}success{% elif borrow.status == 'rejected' %}danger{% else %}info{% endif %}">
+                                            {{ borrow.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ borrow.request_date|date:"M d, Y" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">No recent borrow requests.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-    </nav>
-
-    <div class="dashboard-layout">
-        <aside class="sidebar">
-            <div class="sidebar-title">Navigation</div>
-            <a href="{% url 'dashboard' %}" class="sidebar-link active">
-                <i class="bi bi-speedometer2"></i>
-                Dashboard
-            </a>
-            {% if profile.role == "borrower" %}
-                <a href="#" class="sidebar-link">
-                    <i class="bi bi-search"></i>
-                    Browse Equipment
-                </a>
-                <a href="#" class="sidebar-link">
-                    <i class="bi bi-bag-plus"></i>
-                    Borrow Equipment
-                </a>
-                <a href="#" class="sidebar-link">
-                    <i class="bi bi-list-check"></i>
-                    My Requests
-                </a>
-                <a href="#" class="sidebar-link">
-                    <i class="bi bi-clock-history"></i>
-                    Borrow History
-                </a>
-                <a href="#" class="sidebar-link">
-                    <i class="bi bi-person"></i>
-                    Profile
-                </a>
-            {% elif profile.role == "staff" %}
-                <a href="{% url 'dashboard' %}" class="sidebar-link">
-                    <i class="bi bi-speedometer2"></i>
-                    Dashboard
-                </a>
-
-                <a href="{% url 'equipment_list' %}" class="sidebar-link">
-                    <i class="bi bi-hdd-stack"></i>
-                    Equipment
-                </a>
-
-                <a href="#" class="sidebar-link">
-                    <i class="bi bi-arrow-left-right"></i>
-                    Borrow Requests
-                </a>
-
-                <a href="#" class="sidebar-link">
-                    <i class="bi bi-arrow-return-left"></i>
-                    Return Records
-                </a>
-            {% elif profile.role == "admin" %}
-                <a href="{% url 'dashboard' %}" class="sidebar-link">
-                     <i class="bi bi-speedometer2"></i>
-                    Dashboard
-                </a>
-
-                <a href="#" class="sidebar-link">
-                    <i class="bi bi-people"></i>
-                    User Management
-                </a>
-
-                <a href="{% url 'staff_list' %}" class="sidebar-link">
-                    <i class="bi bi-person-badge"></i>
-                    Staff Management
-                </a>
-
-                <a href="{% url 'staff_approval' %}" class="sidebar-link">
-                    <i class="bi bi-person-check"></i>
-                    Staff Approval
-                </a>
-
-                <a href="{% url 'equipment_list' %}" class="sidebar-link">
-                    <i class="bi bi-hdd-stack"></i>
-                    Equipment
-                </a>
-
-                <a href="#" class="sidebar-link">
-                    <i class="bi bi-arrow-left-right"></i>
-                    Borrow Requests
-                </a>
-
-                <a href="#" class="sidebar-link">
-                    <i class="bi bi-arrow-return-left"></i>
-                    Return Records
-                </a>
-
-                <a href="#" class="sidebar-link">
-                    <i class="bi bi-clipboard-data"></i>
-                    Reports
-                </a>
-
-                <a href="#" class="sidebar-link">
-                    <i class="bi bi-gear"></i>
-                    System Settings
-                </a>
-            {% endif %}
-        </aside>
-
-        <main class="dashboard-main">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-
-            <section class="welcome-section">
-                <div>
-                    <p class="section-kicker">Inventory Overview</p>
-                    <h1>Welcome, {{ request.user.first_name|default:request.user.username }}</h1>
-                    <p>
-                        {% if profile.role == "borrower" %}
-                            Browse equipment, submit borrow requests, and review your borrowing history.
-                        {% elif profile.role == "staff" %}
-                            Manage equipment, process borrow requests, and record returns.
-                        {% elif profile.role == "admin" %}
-                            Review staff registrations, manage users, and monitor system activity.
-                        {% endif %}
-                    </p>
-                </div>
-                <div class="welcome-icon">
-                    <i class="bi bi-clipboard-data"></i>
-                </div>
-            </section>
-
-            <section class="row g-4">
-                <div class="col-sm-6 col-xl-3">
-                    <div class="card dashboard-card">
-                        <div class="card-body">
-                            <div class="card-icon bg-blue">
-                                <i class="bi bi-hdd-rack"></i>
-                            </div>
-                            <span>Total Equipment</span>
-                            <strong>{{ total_equipment }}</strong>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-sm-6 col-xl-3">
-                    <div class="card dashboard-card">
-                        <div class="card-body">
-                            <div class="card-icon bg-green">
-                                <i class="bi bi-check-circle"></i>
-                            </div>
-                            <span>Available Equipment</span>
-                            <strong>{{ available_equipment }}</strong>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-sm-6 col-xl-3">
-                    <div class="card dashboard-card">
-                        <div class="card-body">
-                            <div class="card-icon bg-orange">
-                                <i class="bi bi-arrow-up-right-circle"></i>
-                            </div>
-                            <span>Borrowed Equipment</span>
-                            <strong>{{ borrowed_equipment }}</strong>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-sm-6 col-xl-3">
-                    <div class="card dashboard-card">
-                        <div class="card-body">
-                            <div class="card-icon bg-cyan">
-                                <i class="bi bi-arrow-return-left"></i>
-                            </div>
-                            <span>Returned Equipment</span>
-                            <strong>{{ returned_equipment }}</strong>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {% if profile.role == "admin" %}
-                <section class="mt-4">
-                    <div class="card dashboard-card">
-                        <div class="card-body">
-                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                                <div>
-                                    <h2 class="h5 mb-1">Pending Staff Registrations</h2>
-                                    <p class="text-muted mb-0">Approve or reject staff accounts before they can access staff tools.</p>
-                                </div>
-                                <a href="{% url 'staff_approval' %}" class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-person-check me-1"></i>View All
-                                </a>
-                            </div>
-
-                            <div class="table-responsive mt-3">
-                                <table class="table align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Username</th>
-                                            <th>Email</th>
-                                            <th>Contact Number</th>
-                                            <th>Registration Date</th>
-                                            <th>Status</th>
-                                            <th class="text-end">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for staff in pending_staff %}
-                                            <tr>
-                                                <td>{{ staff.user.get_full_name|default:staff.user.username }}</td>
-                                                <td>{{ staff.user.username }}</td>
-                                                <td>{{ staff.user.email|default:"-" }}</td>
-                                                <td>{{ staff.contact_number|default:"-" }}</td>
-                                                <td>{{ staff.user.date_joined|date:"M d, Y" }}</td>
-                                                <td><span class="badge text-bg-warning">Pending</span></td>
-                                                <td class="text-end">
-                                                    <form method="post" action="{% url 'approve_staff' staff.id %}" class="d-inline">
-                                                        {% csrf_token %}
-                                                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
-                                                    </form>
-                                                    <form method="post" action="{% url 'reject_staff' staff.id %}" class="d-inline">
-                                                        {% csrf_token %}
-                                                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        {% empty %}
-                                            <tr>
-                                                <td colspan="7" class="text-center text-muted py-4">No pending staff registrations.</td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            {% endif %}
-        </main>
     </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-semibold">Recent Returns</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Borrower</th>
+                                <th>Return Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in recent_returns %}
+                                <tr>
+                                    <td>#{{ record.transaction_id }}</td>
+                                    <td>{{ record.request.user.get_full_name|default:record.request.user.username }}</td>
+                                    <td>{{ record.return_date|date:"M d, Y"|default:"—" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-4">No recent returns.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <footer class="dashboard-footer">
-        <span>&copy; 2026 EquipTrack. Equipment Inventory and Tracking System.</span>
-    </footer>
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-semibold">Recent Activities</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activities %}
+                            <tr>
+                                <td>{{ activity.user.get_full_name|default:activity.user.username }}</td>
+                                <td>{{ activity.get_action_display }}</td>
+                                <td>{{ activity.timestamp|timesince }} ago</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">No recent activities.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% if profile.role == "admin" %}
+<section class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+            <div>
+                <h5 class="mb-1">Pending Staff Registrations</h5>
+                <p class="text-muted mb-0">Approve or reject staff accounts before they can access staff tools.</p>
+            </div>
+            <a href="{% url 'staff_approval' %}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-person-check me-1"></i>View All
+            </a>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Contact</th>
+                        <th>Registered</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for staff in pending_staff_list %}
+                        <tr>
+                            <td>{{ staff.user.get_full_name|default:staff.user.username }}</td>
+                            <td>{{ staff.user.username }}</td>
+                            <td>{{ staff.user.email|default:"—" }}</td>
+                            <td>{{ staff.contact_number|default:"—" }}</td>
+                            <td>{{ staff.user.date_joined|date:"M d, Y" }}</td>
+                            <td class="text-end">
+                                <form method="post" action="{% url 'approve_staff' staff.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                                </form>
+                                <form method="post" action="{% url 'reject_staff' staff.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No pending staff registrations.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const borrowStatusChart = new Chart(document.getElementById("borrowStatusChart"), {
+        type: "pie",
+        data: {
+            labels: {{ chart_borrow_labels|safe }},
+            datasets: [{
+                data: {{ chart_borrow_data|safe }},
+                backgroundColor: ["#f59e0b", "#0f9f6e", "#dc3545", "#0891b2"]
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+    });
+
+    const equipmentChart = new Chart(document.getElementById("equipmentChart"), {
+        type: "doughnut",
+        data: {
+            labels: {{ chart_equipment_labels|safe }},
+            datasets: [{
+                data: {{ chart_equipment_data|safe }},
+                backgroundColor: ["#0f9f6e", "#dc3545", "#f59e0b"]
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+    });
+
+    const monthlyBorrowChart = new Chart(document.getElementById("monthlyBorrowChart"), {
+        type: "line",
+        data: {
+            labels: {{ chart_monthly_borrow_labels|safe }},
+            datasets: [{
+                label: "Borrow Requests",
+                data: {{ chart_monthly_borrow_data|safe }},
+                borderColor: "#165ba8",
+                backgroundColor: "rgba(22, 91, 168, 0.15)",
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+    });
+
+    const monthlyReturnChart = new Chart(document.getElementById("monthlyReturnChart"), {
+        type: "line",
+        data: {
+            labels: {{ chart_monthly_return_labels|safe }},
+            datasets: [{
+                label: "Returns",
+                data: {{ chart_monthly_return_data|safe }},
+                borderColor: "#0f9f6e",
+                backgroundColor: "rgba(15, 159, 110, 0.15)",
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+    });
+</script>
+{% endblock %}

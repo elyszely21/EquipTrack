@@ -1,18 +1,14 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db.models import Q
 from django.http import HttpResponseForbidden
 
-from .forms import UserRegistrationForm, LoginForm
-from .models import UserProfile
-
-from django.shortcuts import get_object_or_404
-from django.db.models import Q
-
-from .forms import StaffForm
-from .models import Staff
+from .forms import UserRegistrationForm, LoginForm, StaffForm
+from .models import UserProfile, Staff
 
 def home(request):
     return redirect("login")
@@ -154,40 +150,6 @@ def login_view(request):
     )
 
 @login_required
-def dashboard(request):
-
-    profile = request.user.profile
-    pending_staff = UserProfile.objects.none()
-
-    if is_admin_user(request.user):
-        pending_staff = (
-            UserProfile.objects
-            .select_related("user")
-            .filter(role=UserProfile.ROLE_STAFF, status=UserProfile.STATUS_PENDING)
-            .order_by("user__date_joined")
-        )
-
-    context = {
-
-        "user": request.user,
-
-        "profile": profile,
-
-        "pending_staff": pending_staff,
-
-    }
-
-    return render(
-
-        request,
-
-        "dashboard/index.html",
-
-        context
-
-    )
-
-@login_required
 def logout_view(request):
 
     logout(request)
@@ -237,6 +199,14 @@ def approve_staff(request, profile_id):
 
     profile.status = UserProfile.STATUS_ACTIVE
     profile.save(update_fields=["status"])
+
+    Staff.objects.get_or_create(
+        user_profile=profile,
+        defaults={
+            "department": profile.department or "Unassigned",
+        },
+    )
+
     messages.success(request, "Staff registration approved successfully.")
 
     return redirect("staff_approval")
@@ -272,23 +242,26 @@ def staff_list(request):
     if not is_admin_user(request.user):
         return HttpResponseForbidden()
 
-    search = request.GET.get("search")
+    search = request.GET.get("search", "").strip()
 
-    staff = Staff.objects.select_related("user").all()
+    staff = Staff.objects.select_related("user_profile__user").all()
 
     if search:
         staff = staff.filter(
-            Q(user__first_name__icontains=search) |
-            Q(user__last_name__icontains=search) |
-            Q(user__username__icontains=search) |
+            Q(user_profile__user__first_name__icontains=search) |
+            Q(user_profile__user__last_name__icontains=search) |
+            Q(user_profile__user__username__icontains=search) |
             Q(department__icontains=search)
         )
 
+    paginator = Paginator(staff, 10)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
     context = {
-
-        "staff": staff,
+        "staff": page_obj,
+        "page_obj": page_obj,
         "search": search,
-
+        "profile": request.user.profile,
     }
 
     return render(
@@ -297,24 +270,6 @@ def staff_list(request):
         context,
     )
 
-@login_required
-def staff_detail(request, pk):
-
-    if not is_admin_user(request.user):
-        return HttpResponseForbidden()
-
-    staff = get_object_or_404(
-        Staff,
-        pk=pk
-    )
-
-    return render(
-        request,
-        "staff/staff_detail.html",
-        {
-            "staff": staff
-        }
-    )
 
 @login_required
 def staff_detail(request, pk):
@@ -322,18 +277,17 @@ def staff_detail(request, pk):
     if not is_admin_user(request.user):
         return HttpResponseForbidden()
 
-    staff = get_object_or_404(
-        Staff,
-        pk=pk
-    )
+    staff = get_object_or_404(Staff, pk=pk)
 
     return render(
         request,
         "staff/staff_detail.html",
         {
-            "staff": staff
+            "staff": staff,
+            "profile": request.user.profile,
         }
     )
+
 
 @login_required
 def staff_edit(request, pk):
@@ -377,7 +331,8 @@ def staff_edit(request, pk):
         "staff/staff_form.html",
         {
             "form": form,
-            "staff": staff
+            "staff": staff,
+            "profile": request.user.profile,
         }
     )
 
@@ -409,6 +364,7 @@ def staff_delete(request, pk):
         request,
         "staff/staff_delete.html",
         {
-            "staff": staff
+            "staff": staff,
+            "profile": request.user.profile,
         }
     )

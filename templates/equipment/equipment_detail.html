@@ -79,6 +79,14 @@ Equipment Details
                     </td>
 
                 </tr>
+                <tr>
+                    <th>Stock Status</th>
+                    <td>
+                        <span class="badge bg-{{ equipment.get_stock_status_class }}">
+                            {{ equipment.get_stock_status }}
+                        </span>
+                    </td>
+                </tr>
 
             </table>
 

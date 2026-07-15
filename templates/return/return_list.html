@@ -1,0 +1,100 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Return Records | EquipTrack{% endblock %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Returns</li>
+    </ol>
+</nav>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Return Records</h2>
+        <p class="text-muted mb-0">History of all processed equipment returns.</p>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" value="{{ search }}" class="form-control"
+                       placeholder="Search by borrower or transaction ID">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Filter</label>
+                <select name="filter" class="form-select">
+                    <option value="">All Records</option>
+                    <option value="completed" {% if filter_type == "completed" %}selected{% endif %}>Completed</option>
+                    <option value="overdue" {% if filter_type == "overdue" %}selected{% endif %}>Overdue</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" type="submit">
+                    <i class="bi bi-search me-1"></i>Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow border-0">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Transaction #</th>
+                        <th>Borrower</th>
+                        <th>Processed By</th>
+                        <th>Borrowed Date</th>
+                        <th>Due Date</th>
+                        <th>Return Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in returns %}
+                        <tr>
+                            <td>#{{ record.transaction_id }}</td>
+                            <td>{{ record.request.user.get_full_name|default:record.request.user.username }}</td>
+                            <td>{{ record.staff.get_full_name|default:record.staff.username }}</td>
+                            <td>{{ record.borrowed_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if not record.return_date and record.due_date < today %}
+                                    <span class="text-danger fw-semibold">
+                                        {{ record.due_date|date:"M d, Y" }}
+                                        <i class="bi bi-exclamation-circle ms-1" title="Overdue"></i>
+                                    </span>
+                                {% else %}
+                                    {{ record.due_date|date:"M d, Y" }}
+                                {% endif %}
+                            </td>
+                            <td>{{ record.return_date|date:"M d, Y"|default:"—" }}</td>
+                            <td>
+                                <a href="{% url 'borrow_detail' record.request.request_id %}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <i class="bi bi-inbox display-5 text-muted"></i>
+                                <h5 class="mt-3">No return records found.</h5>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "includes/pagination.html" %}
+    </div>
+</div>
+
+{% endblock %}

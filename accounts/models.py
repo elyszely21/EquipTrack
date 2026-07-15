@@ -65,8 +65,23 @@ class UserProfile(models.Model):
         default=STATUS_ACTIVE
     )
 
+    profile_picture = models.ImageField(
+        upload_to="profile_pictures/",
+        blank=True,
+        null=True,
+    )
+
     def __str__(self):
         return self.user.get_full_name() or self.user.username
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['role']),
+            models.Index(fields=['status']),
+            models.Index(fields=['department']),
+            models.Index(fields=['role', 'status']),
+        ]
 
 
 class Staff(models.Model):

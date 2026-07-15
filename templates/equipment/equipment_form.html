@@ -32,7 +32,7 @@ Add Equipment
 
         <div class="card-body">
 
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
 
                 {% csrf_token %}
 
@@ -68,6 +68,22 @@ Add Equipment
 
                     {{ form.description }}
 
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Equipment Image</label>
+                    {{ form.image }}
+                    <div class="form-text">JPEG or PNG format, max 2MB</div>
+                    {% if form.instance.pk and form.instance.image %}
+                        <div class="mt-2">
+                            <img src="{{ form.instance.image.url }}" alt="Current image" 
+                                 style="max-height: 150px; max-width: 150px; border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
+                        </div>
+                        <div class="form-check mt-2">
+                            <input type="checkbox" name="image-clear" id="image-clear">
+                            <label class="form-check-label" for="image-clear">Remove current image</label>
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="row">

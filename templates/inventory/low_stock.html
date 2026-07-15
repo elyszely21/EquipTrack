@@ -1,73 +1,94 @@
 {% extends "dashboard/base.html" %}
 
-{% block title %}Low Stock{% endblock %}
+{% block title %}Low Stock | EquipTrack{% endblock %}
 
 {% block content %}
 
-<h2 class="mb-4">
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'inventory_list' %}">Inventory</a></li>
+        <li class="breadcrumb-item active">Low Stock</li>
+    </ol>
+</nav>
 
-Low Stock Equipment
-
-</h2>
-
-<div class="card shadow">
-
-<div class="card-body">
-
-<table class="table table-striped">
-
-<thead>
-
-<tr>
-
-<th>Name</th>
-
-<th>Available</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for item in inventory %}
-
-<tr>
-
-<td>{{ item.name }}</td>
-
-<td>
-
-<span class="badge bg-danger">
-
-{{ item.quantity_available }}
-
-</span>
-
-</td>
-
-</tr>
-
-{% empty %}
-
-<tr>
-
-<td colspan="2" class="text-center">
-
-No low stock equipment.
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Low Stock Equipment</h2>
+        <p class="text-muted mb-0">Items with 5 or fewer units available, including out of stock.</p>
+    </div>
+    <a href="{% url 'inventory_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to Inventory
+    </a>
 </div>
 
+<div class="card shadow-sm border-0 mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-10">
+                <input type="text" name="search" value="{{ search }}" class="form-control"
+                       placeholder="Search by name or category">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" type="submit">
+                    <i class="bi bi-search me-1"></i>Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Total</th>
+                        <th>Available</th>
+                        <th>Warning</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in inventory %}
+                        <tr>
+                            <td class="fw-semibold">{{ item.name }}</td>
+                            <td>{{ item.category }}</td>
+                            <td>{{ item.quantity_total }}</td>
+                            <td>{{ item.quantity_available }}</td>
+                            <td>
+                                {% if item.quantity_available == 0 %}
+                                    <span class="badge bg-danger">Out of Stock</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Low Stock</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if item.status == 'available' %}success{% elif item.status == 'maintenance' %}warning text-dark{% else %}danger{% endif %}">
+                                    {{ item.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'equipment_detail' item.equipment_id %}" class="btn btn-sm btn-outline-primary">View</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-5">
+                                <i class="bi bi-check-circle display-6 d-block mb-2 text-success"></i>
+                                No low stock equipment found.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "includes/pagination.html" %}
+    </div>
 </div>
 
 {% endblock %}

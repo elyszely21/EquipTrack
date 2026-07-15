@@ -1,31 +1,59 @@
 {% extends "dashboard/base.html" %}
 
-{% block title %}Equipment{% endblock %}
+{% block title %}Equipment | EquipTrack{% endblock %}
 
 {% block content %}
 
-<div class="container-fluid">
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Equipment</li>
+    </ol>
+</nav>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-
-        <h2>Equipment Management</h2>
-
-        {% if profile.role == "admin" or profile.role == "staff" %}
-        <a href="{% url 'equipment_create' %}" class="btn btn-primary">
-            Add Equipment
-        </a>
-        {% endif %}
-
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Equipment Management</h2>
+        <p class="text-muted mb-0">Search, filter, and manage equipment records.</p>
     </div>
+    {% if profile.role == "admin" or profile.role == "staff" %}
+        <a href="{% url 'equipment_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Add Equipment
+        </a>
+    {% endif %}
+</div>
 
-    <div class="card shadow">
+<div class="card shadow-sm border-0 mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" value="{{ search }}" class="form-control"
+                       placeholder="Search by name, category, or description">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" type="submit">
+                    <i class="bi bi-search me-1"></i>Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
-        <div class="card-body">
-
-            <table class="table table-hover">
-
-                <thead>
-
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
                     <tr>
                         <th>ID</th>
                         <th>Name</th>
@@ -33,89 +61,53 @@
                         <th>Total</th>
                         <th>Available</th>
                         <th>Status</th>
+                        <th>Stock</th>
                         <th>Action</th>
                     </tr>
-
                 </thead>
-
                 <tbody>
-
-                {% for equipment in equipments %}
-
-                    <tr>
-
-                        <td>{{ equipment.equipment_id }}</td>
-
-                        <td>{{ equipment.name }}</td>
-
-                        <td>{{ equipment.category }}</td>
-
-                        <td>{{ equipment.quantity_total }}</td>
-
-                        <td>{{ equipment.quantity_available }}</td>
-
-                        <td>
-
-                            {% if equipment.status == "available" %}
-                                <span class="badge bg-success">Available</span>
-
-                            {% elif equipment.status == "maintenance" %}
-                                <span class="badge bg-warning text-dark">Maintenance</span>
-
-                            {% else %}
-                                <span class="badge bg-danger">Unavailable</span>
-
-                            {% endif %}
-
-                        </td>
-
-                        <td>
-
-                            <a href="{% url 'equipment_detail' equipment.equipment_id %}"
-                               class="btn btn-info btn-sm">
-                                View
-                            </a>
-
-                            {% if profile.role == "admin" or profile.role == "staff" %}
-
-                            <a href="{% url 'equipment_update' equipment.equipment_id %}"
-                               class="btn btn-warning btn-sm">
-                                Edit
-                            </a>
-
-                            <a href="{% url 'equipment_delete' equipment.equipment_id %}"
-                               class="btn btn-danger btn-sm">
-                                Delete
-                            </a>
-
-                            {% endif %}
-
-                        </td>
-
-                    </tr>
-
-                {% empty %}
-
-                    <tr>
-
-                        <td colspan="7" class="text-center">
-
-                            No equipment found.
-
-                        </td>
-
-                    </tr>
-
-                {% endfor %}
-
+                    {% for equipment in equipments %}
+                        <tr>
+                            <td>{{ equipment.equipment_id }}</td>
+                            <td class="fw-semibold">{{ equipment.name }}</td>
+                            <td>{{ equipment.category }}</td>
+                            <td>{{ equipment.quantity_total }}</td>
+                            <td>{{ equipment.quantity_available }}</td>
+                            <td>
+                                {% if equipment.status == "available" %}
+                                    <span class="badge bg-success">Available</span>
+                                {% elif equipment.status == "maintenance" %}
+                                    <span class="badge bg-warning text-dark">Maintenance</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Unavailable</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ equipment.get_stock_status_class }}">
+                                    {{ equipment.get_stock_status }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'equipment_detail' equipment.equipment_id %}" class="btn btn-info btn-sm">View</a>
+                                {% if profile.role == "admin" or profile.role == "staff" %}
+                                    <a href="{% url 'equipment_update' equipment.equipment_id %}" class="btn btn-warning btn-sm">Edit</a>
+                                    <a href="{% url 'equipment_delete' equipment.equipment_id %}" class="btn btn-danger btn-sm">Delete</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-5">
+                                <i class="bi bi-inbox display-6 d-block mb-2"></i>
+                                No equipment found.
+                            </td>
+                        </tr>
+                    {% endfor %}
                 </tbody>
-
             </table>
-
         </div>
-
+        {% include "includes/pagination.html" %}
     </div>
-
 </div>
 
 {% endblock %}

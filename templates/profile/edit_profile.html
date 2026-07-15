@@ -1,0 +1,92 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Edit Profile | EquipTrack{% endblock %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'profile' %}">Profile</a></li>
+        <li class="breadcrumb-item active">Edit</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Edit Profile</h2>
+    <a href="{% url 'profile' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<div class="card shadow-sm border-0" style="max-width:820px;">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" for="{{ form.first_name.id_for_label }}">First Name</label>
+                    {{ form.first_name }}
+                    {% for error in form.first_name.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" for="{{ form.last_name.id_for_label }}">Last Name</label>
+                    {{ form.last_name }}
+                    {% for error in form.last_name.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" for="{{ form.middle_name.id_for_label }}">Middle Name</label>
+                    {{ form.middle_name }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" for="{{ form.suffix.id_for_label }}">Suffix</label>
+                    {{ form.suffix }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" for="{{ form.email.id_for_label }}">Email</label>
+                    {{ form.email }}
+                    {% for error in form.email.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" for="{{ form.contact_number.id_for_label }}">Contact Number</label>
+                    {{ form.contact_number }}
+                    {% for error in form.contact_number.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" for="{{ form.department.id_for_label }}">Department</label>
+                    {{ form.department }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" for="{{ form.position.id_for_label }}">Position</label>
+                    {{ form.position }}
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold" for="{{ form.profile_picture.id_for_label }}">Profile Picture</label>
+                    {{ form.profile_picture }}
+                    {% if profile.profile_picture %}
+                        <div class="form-text">Current: {{ profile.profile_picture.name }}</div>
+                    {% endif %}
+                    {% for error in form.profile_picture.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle me-1"></i>Save Changes
+                </button>
+                <a href="{% url 'profile' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

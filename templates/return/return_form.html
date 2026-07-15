@@ -1,0 +1,172 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Process Return — Request #{{ borrow_request.request_id }}{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold">Process Return</h2>
+            <p class="text-muted mb-0">
+                Recording return for Borrow Request #{{ borrow_request.request_id }}
+            </p>
+        </div>
+
+        <a href="{% url 'borrow_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-1"></i>
+            Back
+        </a>
+
+    </div>
+
+    <div class="row g-4">
+
+        <!-- Items Being Returned -->
+
+        <div class="col-md-5">
+
+            <div class="card shadow border-0 h-100">
+
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-box-seam me-2"></i>
+                        Items Being Returned
+                    </h5>
+                </div>
+
+                <div class="card-body p-0">
+
+                    <table class="table table-hover mb-0">
+
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">Equipment</th>
+                                <th class="text-center">Qty</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td class="ps-3">{{ item.equipment.name }}</td>
+                                <td class="text-center">{{ item.quantity }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div class="card-footer text-muted small">
+                    Borrower:
+                    <strong>
+                        {{ borrow_request.user.get_full_name|default:borrow_request.user.username }}
+                    </strong>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Return Form -->
+
+        <div class="col-md-7">
+
+            <div class="card shadow border-0">
+
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-arrow-return-left me-2"></i>
+                        Return Details
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    <form method="POST">
+
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Borrowed Date <span class="text-danger">*</span>
+                            </label>
+                            {{ form.borrowed_date }}
+                            {% if form.borrowed_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.borrowed_date.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Due Date <span class="text-danger">*</span>
+                            </label>
+                            {{ form.due_date }}
+                            {% if form.due_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.due_date.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Return Date</label>
+                            {{ form.return_date }}
+                            {% if form.return_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.return_date.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">Leave blank if equipment is not yet returned.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Condition Notes</label>
+                            {{ form.condition_notes }}
+                            {% if form.condition_notes.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.condition_notes.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex gap-2">
+
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Confirm Return
+                            </button>
+
+                            <a href="{% url 'borrow_list' %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

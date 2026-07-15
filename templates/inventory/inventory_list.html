@@ -1,85 +1,192 @@
 {% extends "dashboard/base.html" %}
 
-{% block title %}Inventory{% endblock %}
+{% block title %}Inventory | EquipTrack{% endblock %}
 
 {% block content %}
 
-<h2 class="mb-4">
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Inventory</li>
+    </ol>
+</nav>
 
-Inventory
-
-</h2>
-
-<div class="card shadow">
-
-<div class="card-body">
-
-<table class="table table-bordered">
-
-<thead>
-
-<tr>
-
-<th>Name</th>
-
-<th>Category</th>
-
-<th>Total</th>
-
-<th>Available</th>
-
-<th>Status</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for item in inventory %}
-
-<tr>
-
-<td>{{ item.name }}</td>
-
-<td>{{ item.category }}</td>
-
-<td>{{ item.quantity_total }}</td>
-
-<td>{{ item.quantity_available }}</td>
-
-<td>
-
-<span class="badge bg-primary">
-
-{{ item.status }}
-
-</span>
-
-</td>
-
-</tr>
-
-{% empty %}
-
-<tr>
-
-<td colspan="5" class="text-center">
-
-No inventory available.
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Inventory</h2>
+        <p class="text-muted mb-0">Track stock levels, status, and categories.</p>
+    </div>
+    <a href="{% url 'low_stock' %}" class="btn btn-warning">
+        <i class="bi bi-exclamation-triangle me-1"></i>Low Stock
+    </a>
 </div>
 
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm"><div class="card-body py-3">
+            <div class="small text-muted">Total</div>
+            <div class="fw-bold fs-4">{{ total_items }}</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm"><div class="card-body py-3">
+            <div class="small text-muted">Available</div>
+            <div class="fw-bold fs-4 text-success">{{ available_items }}</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm"><div class="card-body py-3">
+            <div class="small text-muted">Unavailable</div>
+            <div class="fw-bold fs-4 text-danger">{{ unavailable_items }}</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm"><div class="card-body py-3">
+            <div class="small text-muted">Maintenance</div>
+            <div class="fw-bold fs-4 text-warning">{{ maintenance_items }}</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm"><div class="card-body py-3">
+            <div class="small text-muted">Low Stock</div>
+            <div class="fw-bold fs-4 text-warning">{{ low_stock_items }}</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm"><div class="card-body py-3">
+            <div class="small text-muted">Out of Stock</div>
+            <div class="fw-bold fs-4 text-danger">{{ out_of_stock_items }}</div>
+        </div></div>
+    </div>
+</div>
+
+{% if low_stock_items or out_of_stock_items %}
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <div>
+            {% if out_of_stock_items %}
+                <strong>{{ out_of_stock_items }}</strong> item(s) out of stock.
+            {% endif %}
+            {% if low_stock_items %}
+                <strong>{{ low_stock_items }}</strong> item(s) running low (≤ 5 available).
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+
+<div class="card shadow-sm border-0 mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" value="{{ search }}" class="form-control"
+                       placeholder="Name, category, description">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Stock</label>
+                <select name="stock" class="form-select">
+                    <option value="">All</option>
+                    <option value="low_stock" {% if stock_filter == "low_stock" %}selected{% endif %}>Low Stock</option>
+                    <option value="out_of_stock" {% if stock_filter == "out_of_stock" %}selected{% endif %}>Out of Stock</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Category</label>
+                <select name="category" class="form-select">
+                    <option value="">All</option>
+                    {% for category in categories %}
+                        <option value="{{ category }}" {% if category_filter == category %}selected{% endif %}>{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Sort</label>
+                <select name="sort" class="form-select">
+                    <option value="name" {% if sort == "name" %}selected{% endif %}>Name A-Z</option>
+                    <option value="-name" {% if sort == "-name" %}selected{% endif %}>Name Z-A</option>
+                    <option value="available" {% if sort == "available" %}selected{% endif %}>Available ↑</option>
+                    <option value="-available" {% if sort == "-available" %}selected{% endif %}>Available ↓</option>
+                    <option value="category" {% if sort == "category" %}selected{% endif %}>Category</option>
+                    <option value="status" {% if sort == "status" %}selected{% endif %}>Status</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-primary w-100" type="submit">
+                    <i class="bi bi-funnel"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Total</th>
+                        <th>Available</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in inventory %}
+                        <tr>
+                            <td class="fw-semibold">{{ item.name }}</td>
+                            <td><span class="badge bg-secondary">{{ item.category }}</span></td>
+                            <td>{{ item.quantity_total }}</td>
+                            <td>{{ item.quantity_available }}</td>
+                            <td>
+                                {% if item.quantity_available == 0 %}
+                                    <span class="badge bg-danger">Out of Stock</span>
+                                {% elif item.quantity_available <= 5 %}
+                                    <span class="badge bg-warning text-dark">Low Stock</span>
+                                {% else %}
+                                    <span class="badge bg-success">In Stock</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.status == "available" %}
+                                    <span class="badge bg-success">Available</span>
+                                {% elif item.status == "maintenance" %}
+                                    <span class="badge bg-warning text-dark">Maintenance</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Unavailable</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'equipment_detail' item.equipment_id %}" class="btn btn-sm btn-outline-primary">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-5">
+                                <i class="bi bi-inbox display-6 d-block mb-2"></i>
+                                No inventory items match your filters.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "includes/pagination.html" %}
+    </div>
 </div>
 
 {% endblock %}

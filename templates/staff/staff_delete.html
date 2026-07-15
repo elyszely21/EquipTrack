@@ -1,45 +1,32 @@
 {% extends "dashboard/base.html" %}
 
-{% block title %}Delete Staff{% endblock %}
+{% block title %}Delete Staff | EquipTrack{% endblock %}
 
 {% block content %}
 
-<div class="container mt-4">
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'staff_list' %}">Staff</a></li>
+        <li class="breadcrumb-item active">Delete</li>
+    </ol>
+</nav>
 
-<h2>Delete Staff</h2>
-
-<p>
-
-Are you sure you want to delete
-
-<strong>
-
-{{ staff.user.get_full_name }}
-
-</strong>
-
-?
-
-</p>
-
-<form method="POST">
-
-{% csrf_token %}
-
-<button class="btn btn-danger">
-
-Delete
-
-</button>
-
-<a href="{% url 'staff_list' %}" class="btn btn-secondary">
-
-Cancel
-
-</a>
-
-</form>
-
+<div class="card shadow-sm border-0" style="max-width:560px;">
+    <div class="card-header bg-danger text-white">
+        <h4 class="mb-0">Delete Staff</h4>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            Are you sure you want to delete
+            <strong>{{ staff.user_profile.user.get_full_name|default:staff.user_profile.user.username }}</strong>?
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <button class="btn btn-danger" type="submit">Delete</button>
+            <a href="{% url 'staff_list' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
 </div>
 
 {% endblock %}
