@@ -13,3 +13,6 @@ __pycache__/
 
 # SQLite
 db.sqlite3
+
+# Django media uploads
+media/
