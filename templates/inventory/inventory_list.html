@@ -1,85 +1,209 @@
 {% extends "dashboard/base.html" %}
 
 {% block title %}Inventory{% endblock %}
+{% block active_page %}inventory{% endblock %}
 
 {% block content %}
 
-<h2 class="mb-4">
-
-Inventory
-
-</h2>
-
-<div class="card shadow">
-
-<div class="card-body">
-
-<table class="table table-bordered">
-
-<thead>
-
-<tr>
-
-<th>Name</th>
-
-<th>Category</th>
-
-<th>Total</th>
-
-<th>Available</th>
-
-<th>Status</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for item in inventory %}
-
-<tr>
-
-<td>{{ item.name }}</td>
-
-<td>{{ item.category }}</td>
-
-<td>{{ item.quantity_total }}</td>
-
-<td>{{ item.quantity_available }}</td>
-
-<td>
-
-<span class="badge bg-primary">
-
-{{ item.status }}
-
-</span>
-
-</td>
-
-</tr>
-
-{% empty %}
-
-<tr>
-
-<td colspan="5" class="text-center">
-
-No inventory available.
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
+<div class="page-header">
+    <h2><i class="bi bi-boxes me-2"></i>Inventory Management</h2>
 </div>
 
+{% if low_stock_count > 0 or out_of_stock_count > 0 %}
+    <div class="row mb-4">
+        {% if low_stock_count > 0 %}
+            <div class="col-md-6 mb-3 mb-md-0">
+                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <div>
+                        <strong>Low Stock Alert!</strong> {{ low_stock_count }} item(s) have low stock (&lt;= 5 available).
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        {% if out_of_stock_count > 0 %}
+            <div class="col-md-6">
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-x-circle-fill me-2"></i>
+                    <div>
+                        <strong>Out of Stock Alert!</strong> {{ out_of_stock_count }} item(s) are out of stock.
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endif %}
+
+<div class="content-card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="search" value="{{ search }}" placeholder="Search by name, category..." aria-label="Search inventory">
+                    <button class="btn btn-primary" type="submit" aria-label="Search">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" name="category" aria-label="Filter by category">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category }}" {% if category_filter == category %}selected{% endif %}>{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" name="status" aria-label="Filter by status">
+                    <option value="">All Statuses</option>
+                    <option value="available" {% if status_filter == 'available' %}selected{% endif %}>Available</option>
+                    <option value="unavailable" {% if status_filter == 'unavailable' %}selected{% endif %}>Unavailable</option>
+                    <option value="maintenance" {% if status_filter == 'maintenance' %}selected{% endif %}>Maintenance</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" name="stock" aria-label="Filter by stock level">
+                    <option value="">All Stock</option>
+                    <option value="available" {% if stock_filter == 'available' %}selected{% endif %}>In Stock</option>
+                    <option value="low_stock" {% if stock_filter == 'low_stock' %}selected{% endif %}>Low Stock</option>
+                    <option value="out_of_stock" {% if stock_filter == 'out_of_stock' %}selected{% endif %}>Out of Stock</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <a href="{% url 'inventory_list' %}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-clockwise"></i>Reset
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
+
+<div class="content-card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Image</th>
+                        <th>
+                            <a href="?{% if order_by == 'name' %}{% if search %}search={{ search }}&{% endif %}{% if category_filter %}category={{ category_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if stock_filter %}stock={{ stock_filter }}&{% endif %}order_by=-name{% else %}{% if search %}search={{ search }}&{% endif %}{% if category_filter %}category={{ category_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if stock_filter %}stock={{ stock_filter }}&{% endif %}order_by=name{% endif %}" class="text-decoration-none text-white">
+                                Name {% if order_by == 'name' %}<i class="bi bi-arrow-up"></i>{% elif order_by == '-name' %}<i class="bi bi-arrow-down"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?{% if order_by == 'category' %}{% if search %}search={{ search }}&{% endif %}{% if category_filter %}category={{ category_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if stock_filter %}stock={{ stock_filter }}&{% endif %}order_by=-category{% else %}{% if search %}search={{ search }}&{% endif %}{% if category_filter %}category={{ category_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if stock_filter %}stock={{ stock_filter }}&{% endif %}order_by=category{% endif %}" class="text-decoration-none text-white">
+                                Category {% if order_by == 'category' %}<i class="bi bi-arrow-up"></i>{% elif order_by == '-category' %}<i class="bi bi-arrow-down"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th class="text-center">Total Qty</th>
+                        <th class="text-center">Available Qty</th>
+                        <th class="text-center">Borrowed Qty</th>
+                        <th class="text-center">Stock Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in inventory %}
+                        <tr>
+                            <td class="text-center">
+                                {% if item.item.image %}
+                                    <img src="{{ item.item.image.url }}" alt="{{ item.item.name }}" class="img-thumb-sm">
+                                {% else %}
+                                    <i class="bi bi-image text-muted fs-4"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ item.item.name }}</strong>
+                                {% if item.item.description %}
+                                    <br><small class="text-muted">{{ item.item.description|truncatechars:50 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.item.category }}</td>
+                            <td class="text-center">{{ item.item.quantity_total }}</td>
+                            <td class="text-center">{{ item.item.quantity_available }}</td>
+                            <td class="text-center">{{ item.borrowed_quantity }}</td>
+                            <td class="text-center">
+                                {% if item.stock_status == 'out_of_stock' %}
+                                    <span class="badge text-bg-danger">Out of Stock</span>
+                                {% elif item.stock_status == 'low_stock' %}
+                                    <span class="badge text-bg-warning">Low Stock</span>
+                                {% else %}
+                                    <span class="badge text-bg-success">Available</span>
+                                {% endif %}
+                                <br>
+                                <span class="badge text-bg-{{ item.item.status }}">
+                                    {{ item.item.get_status_display|default:item.item.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'equipment_detail' item.item.equipment_id %}" class="btn btn-sm btn-info" title="View details" aria-label="View {{ item.item.name }}">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <i class="bi bi-inbox display-5"></i>
+                                    <h5>No inventory items found.</h5>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if inventory.paginator.num_pages > 1 %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if inventory.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if stock_filter %}&stock={{ stock_filter }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" aria-label="First page">
+                        <i class="bi bi-chevron-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ inventory.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if stock_filter %}&stock={{ stock_filter }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" aria-label="Previous page">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+
+            {% for num in inventory.paginator.page_range %}
+                {% if inventory.number == num %}
+                    <li class="page-item active">
+                        <a class="page-link" href="#">{{ num }}</a>
+                    </li>
+                {% elif num > inventory.number|add:'-3' and num < inventory.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if stock_filter %}&stock={{ stock_filter }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if inventory.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ inventory.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if stock_filter %}&stock={{ stock_filter }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" aria-label="Next page">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ inventory.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if stock_filter %}&stock={{ stock_filter }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" aria-label="Last page">
+                        <i class="bi bi-chevron-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    <div class="text-center text-muted mt-2">
+        Showing {{ inventory.start_index }} to {{ inventory.end_index }} of {{ inventory.paginator.count }} entries
+    </div>
+{% endif %}
 
 {% endblock %}

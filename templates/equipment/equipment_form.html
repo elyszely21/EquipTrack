@@ -1,137 +1,116 @@
 {% extends "dashboard/base.html" %}
 
 {% block title %}
-
-{% if form.instance.pk %}
-Edit Equipment
-{% else %}
-Add Equipment
-{% endif %}
-
+{% if form.instance.pk %}Edit Equipment{% else %}Add Equipment{% endif %}
 {% endblock %}
+{% block active_page %}equipment{% endblock %}
 
 {% block content %}
 
-<div class="container-fluid">
+<div class="page-header">
+    <h2>
+        <i class="bi bi-box-seam me-2"></i>
+        {% if form.instance.pk %}Edit Equipment{% else %}Add Equipment{% endif %}
+    </h2>
+    <a href="{% url 'equipment_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Back to Equipment
+    </a>
+</div>
 
-    <div class="card shadow">
+<div class="content-card">
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data" data-disable-on-submit>
+            {% csrf_token %}
 
-        <div class="card-header">
-
-            <h3>
-
-                {% if form.instance.pk %}
-                    Edit Equipment
-                {% else %}
-                    Add Equipment
-                {% endif %}
-
-            </h3>
-
-        </div>
-
-        <div class="card-body">
-
-            <form method="POST">
-
-                {% csrf_token %}
-
-                <div class="row">
-
-                    <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Equipment Name
-                        </label>
-
-                        {{ form.name }}
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Category
-                        </label>
-
-                        {{ form.category }}
-
-                    </div>
-
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Equipment Name <span class="text-danger">*</span></label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="text-danger">{{ form.name.errors }}</div>
+                    {% endif %}
                 </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Category <span class="text-danger">*</span></label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                        <div class="text-danger">{{ form.category.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
 
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <div class="text-danger">{{ form.description.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Total Quantity <span class="text-danger">*</span></label>
+                    {{ form.quantity_total }}
+                    {% if form.quantity_total.errors %}
+                        <div class="text-danger">{{ form.quantity_total.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Available Quantity <span class="text-danger">*</span></label>
+                    {{ form.quantity_available }}
+                    {% if form.quantity_available.errors %}
+                        <div class="text-danger">{{ form.quantity_available.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Status</label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                        <div class="text-danger">{{ form.status.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Equipment Image</label>
                 <div class="mb-3">
-
-                    <label class="form-label">
-                        Description
-                    </label>
-
-                    {{ form.description }}
-
+                    {{ form.image }}
+                    {% if form.image.errors %}
+                        <div class="text-danger">{{ form.image.errors }}</div>
+                    {% endif %}
                 </div>
-
-                <div class="row">
-
-                    <div class="col-md-4 mb-3">
-
-                        <label class="form-label">
-                            Total Quantity
-                        </label>
-
-                        {{ form.quantity_total }}
-
+                {% if form.instance.pk and form.instance.image %}
+                    <div class="mb-3">
+                        <p class="text-muted small">Current image:</p>
+                        <img src="{{ form.instance.image.url }}" alt="Current equipment image" class="img-thumb-md">
+                        <div class="form-check mt-2">
+                            <input type="checkbox" name="image-clear" id="image-clear" class="form-check-input">
+                            <label for="image-clear" class="form-check-label">Remove current image</label>
+                        </div>
                     </div>
-
-                    <div class="col-md-4 mb-3">
-
-                        <label class="form-label">
-                            Available Quantity
-                        </label>
-
-                        {{ form.quantity_available }}
-
-                    </div>
-
-                    <div class="col-md-4 mb-3">
-
-                        <label class="form-label">
-                            Status
-                        </label>
-
-                        {{ form.status }}
-
-                    </div>
-
-                </div>
-
-                {% if form.errors %}
-
-                <div class="alert alert-danger">
-
-                    {{ form.errors }}
-
-                </div>
-
                 {% endif %}
+                <div class="form-text">Upload an image (JPG, PNG, GIF, WebP). Maximum size: 5MB.</div>
+            </div>
 
-                <button type="submit" class="btn btn-success">
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
 
-                    Save Equipment
-
+            <div class="d-flex justify-content-between align-items-center">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-2"></i>
+                    {% if form.instance.pk %}Update Equipment{% else %}Save Equipment{% endif %}
                 </button>
-
-                <a href="{% url 'equipment_list' %}" class="btn btn-secondary">
-
-                    Cancel
-
+                <a href="{% url 'equipment_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-2"></i>Cancel
                 </a>
-
-            </form>
-
-        </div>
-
+            </div>
+        </form>
     </div>
-
 </div>
 
 {% endblock %}

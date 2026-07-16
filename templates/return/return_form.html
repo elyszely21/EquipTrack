@@ -1,0 +1,96 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Create Return Record{% endblock %}
+{% block active_page %}return{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h2><i class="bi bi-arrow-return-left me-2"></i>Create Return Record</h2>
+</div>
+
+<div class="content-card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-file-earmark me-2"></i>Return for Borrow Request #{{ borrow_request.request_id }}</h5>
+    </div>
+    <div class="card-body">
+        <p class="text-muted mb-4">
+            Process the return of borrowed equipment and record the transaction details.
+        </p>
+
+        <div class="content-card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Borrow Request Summary</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Request ID:</dt>
+                    <dd class="col-sm-8">#{{ borrow_request.request_id }}</dd>
+
+                    <dt class="col-sm-4">Borrower:</dt>
+                    <dd class="col-sm-8">{{ borrow_request.user.get_full_name|default:borrow_request.user.username }}</dd>
+
+                    <dt class="col-sm-4">Date Requested:</dt>
+                    <dd class="col-sm-8">{{ borrow_request.request_date|date:"M d, Y h:i A" }}</dd>
+
+                    <dt class="col-sm-4">Items:</dt>
+                    <dd class="col-sm-8">{{ borrow_request.items.count }}</dd>
+                </dl>
+
+                <h6 class="mt-3 mb-2">Requested Items:</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Equipment</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in borrow_request.items.all %}
+                                <tr>
+                                    <td>{{ item.equipment.name }}</td>
+                                    <td>{{ item.equipment.category }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" action="" data-disable-on-submit>
+            {% csrf_token %}
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="due_date" class="form-label">Due Date</label>
+                    <input type="date" name="due_date" id="due_date" class="form-control" value="{{ borrow_request.request_date|date:'Y-m-d' }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="condition_notes" class="form-label">Condition Notes</label>
+                    <textarea name="condition_notes" id="condition_notes" class="form-control" rows="3" placeholder="Any notes about the condition of returned equipment..."></textarea>
+                    <div class="form-text">Optional notes about equipment condition, damages, etc.</div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                Once submitted, the borrow request will be marked as "Returned" and equipment availability will be updated.
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-2"></i>Process Return
+                </button>
+                <a href="{% url 'borrow_detail' borrow_request.request_id %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

@@ -11,8 +11,8 @@ urlpatterns = [
     path("register/", views.register, name="register"),
     path("logout/", views.logout_view, name="logout"),
 
-    # Dashboard
-    path("dashboard/", views.dashboard, name="dashboard"),
+    # Dashboard is provided solely by dashboard.urls (name="dashboard").
+    # Do not register a second dashboard route here.
 
     # Staff Approval
     path(
@@ -55,6 +55,28 @@ urlpatterns = [
         "staff/<int:pk>/delete/",
         views.staff_delete,
         name="staff_delete"
+    ),
+
+    # ==========================
+    # Profile
+    # ==========================
+
+    path(
+        "profile/",
+        views.profile_view,
+        name="profile"
+    ),
+
+    path(
+        "profile/edit/",
+        views.edit_profile,
+        name="edit_profile"
+    ),
+
+    path(
+        "profile/change-password/",
+        views.change_password,
+        name="change_password"
     ),
 
 ]

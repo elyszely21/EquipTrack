@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm as DjangoPasswordChangeForm
 
 from .models import UserProfile, Staff
 
@@ -171,3 +171,69 @@ class StaffForm(forms.ModelForm):
             ),
 
         }
+
+
+# PROFILE MANAGEMENT FORM
+
+class ProfileForm(forms.ModelForm):
+    
+    first_name = forms.CharField(
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+    
+    last_name = forms.CharField(
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+    
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={"class": "form-control"})
+    )
+    
+    class Meta:
+        model = UserProfile
+        fields = [
+            "first_name",
+            "last_name",
+            "email",
+            "middle_name",
+            "suffix",
+            "contact_number",
+            "department",
+            "position",
+        ]
+        widgets = {
+            "middle_name": forms.TextInput(attrs={"class": "form-control"}),
+            "suffix": forms.TextInput(attrs={"class": "form-control"}),
+            "contact_number": forms.TextInput(attrs={"class": "form-control"}),
+            "department": forms.TextInput(attrs={"class": "form-control"}),
+            "position": forms.TextInput(attrs={"class": "form-control"}),
+        }
+
+
+# PASSWORD CHANGE FORM
+
+class PasswordChangeForm(DjangoPasswordChangeForm):
+    
+    old_password = forms.CharField(
+        label="Current Password",
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control",
+            "placeholder": "Enter current password"
+        })
+    )
+    
+    new_password1 = forms.CharField(
+        label="New Password",
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control",
+            "placeholder": "Enter new password"
+        })
+    )
+    
+    new_password2 = forms.CharField(
+        label="Confirm New Password",
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control",
+            "placeholder": "Confirm new password"
+        })
+    )

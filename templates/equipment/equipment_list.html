@@ -1,121 +1,202 @@
 {% extends "dashboard/base.html" %}
 
-{% block title %}Equipment{% endblock %}
+{% block title %}Equipment Management{% endblock %}
+{% block active_page %}equipment{% endblock %}
 
 {% block content %}
 
-<div class="container-fluid">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-
-        <h2>Equipment Management</h2>
-
-        {% if profile.role == "admin" or profile.role == "staff" %}
+<div class="page-header">
+    <h2><i class="bi bi-box-seam me-2"></i>Equipment Management</h2>
+    {% if profile.role == "admin" or profile.role == "staff" %}
         <a href="{% url 'equipment_create' %}" class="btn btn-primary">
-            Add Equipment
+            <i class="bi bi-plus-circle me-2"></i>Add Equipment
         </a>
+    {% endif %}
+</div>
+
+{% if low_stock_count > 0 or out_of_stock_count > 0 %}
+    <div class="alert alert-warning alert-dismissible fade show mb-4">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <strong>Stock Alerts:</strong>
+        {% if out_of_stock_count > 0 %}
+            <span class="badge text-bg-danger me-2">{{ out_of_stock_count }} Out of Stock</span>
         {% endif %}
-
+        {% if low_stock_count > 0 %}
+            <span class="badge text-bg-warning">{{ low_stock_count }} Low Stock</span>
+        {% endif %}
+        <a href="{% url 'low_stock' %}" class="btn btn-sm btn-outline-warning ms-3">
+            <i class="bi bi-eye me-1"></i>View Details
+        </a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close notification"></button>
     </div>
+{% endif %}
 
-    <div class="card shadow">
+<div class="content-card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" placeholder="Search by name, category, or description..." value="{{ search }}" aria-label="Search equipment">
+                    <button class="btn btn-primary" type="submit" aria-label="Search">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <select name="category_filter" class="form-select" aria-label="Filter by category">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category }}" {% if category_filter == category %}selected{% endif %}>{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="status_filter" class="form-select" aria-label="Filter by status">
+                    <option value="">All Status</option>
+                    <option value="available" {% if status_filter == 'available' %}selected{% endif %}>Available</option>
+                    <option value="unavailable" {% if status_filter == 'unavailable' %}selected{% endif %}>Unavailable</option>
+                    <option value="maintenance" {% if status_filter == 'maintenance' %}selected{% endif %}>Maintenance</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="stock_filter" class="form-select" aria-label="Filter by stock level">
+                    <option value="">All Stock Levels</option>
+                    <option value="available" {% if stock_filter == 'available' %}selected{% endif %}>In Stock</option>
+                    <option value="low_stock" {% if stock_filter == 'low_stock' %}selected{% endif %}>Low Stock</option>
+                    <option value="out_of_stock" {% if stock_filter == 'out_of_stock' %}selected{% endif %}>Out of Stock</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <a href="?" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-clockwise"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
 
-        <div class="card-body">
-
-            <table class="table table-hover">
-
-                <thead>
-
+<div class="content-card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
                     <tr>
+                        <th width="60">Image</th>
                         <th>ID</th>
                         <th>Name</th>
                         <th>Category</th>
                         <th>Total</th>
                         <th>Available</th>
+                        <th>Borrowed</th>
                         <th>Status</th>
-                        <th>Action</th>
+                        <th>Stock Alert</th>
+                        <th width="140">Actions</th>
                     </tr>
-
                 </thead>
-
                 <tbody>
-
-                {% for equipment in equipments %}
-
-                    <tr>
-
-                        <td>{{ equipment.equipment_id }}</td>
-
-                        <td>{{ equipment.name }}</td>
-
-                        <td>{{ equipment.category }}</td>
-
-                        <td>{{ equipment.quantity_total }}</td>
-
-                        <td>{{ equipment.quantity_available }}</td>
-
-                        <td>
-
-                            {% if equipment.status == "available" %}
-                                <span class="badge bg-success">Available</span>
-
-                            {% elif equipment.status == "maintenance" %}
-                                <span class="badge bg-warning text-dark">Maintenance</span>
-
-                            {% else %}
-                                <span class="badge bg-danger">Unavailable</span>
-
-                            {% endif %}
-
-                        </td>
-
-                        <td>
-
-                            <a href="{% url 'equipment_detail' equipment.equipment_id %}"
-                               class="btn btn-info btn-sm">
-                                View
-                            </a>
-
-                            {% if profile.role == "admin" or profile.role == "staff" %}
-
-                            <a href="{% url 'equipment_update' equipment.equipment_id %}"
-                               class="btn btn-warning btn-sm">
-                                Edit
-                            </a>
-
-                            <a href="{% url 'equipment_delete' equipment.equipment_id %}"
-                               class="btn btn-danger btn-sm">
-                                Delete
-                            </a>
-
-                            {% endif %}
-
-                        </td>
-
-                    </tr>
-
-                {% empty %}
-
-                    <tr>
-
-                        <td colspan="7" class="text-center">
-
-                            No equipment found.
-
-                        </td>
-
-                    </tr>
-
-                {% endfor %}
-
+                    {% for equipment in equipments %}
+                        <tr>
+                            <td>
+                                {% if equipment.image %}
+                                    <img src="{{ equipment.image.url }}" alt="{{ equipment.name }}" class="img-thumb-sm">
+                                {% else %}
+                                    <i class="bi bi-image text-muted fs-4"></i>
+                                {% endif %}
+                            </td>
+                            <td>{{ equipment.equipment_id }}</td>
+                            <td>{{ equipment.name }}</td>
+                            <td>{{ equipment.category }}</td>
+                            <td>{{ equipment.quantity_total }}</td>
+                            <td>{{ equipment.quantity_available }}</td>
+                            <td>{{ equipment.get_borrowed_quantity }}</td>
+                            <td>
+                                {% if equipment.status == "available" %}
+                                    <span class="badge text-bg-success">Available</span>
+                                {% elif equipment.status == "maintenance" %}
+                                    <span class="badge text-bg-warning">Maintenance</span>
+                                {% else %}
+                                    <span class="badge text-bg-danger">Unavailable</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if equipment.quantity_available == 0 %}
+                                    <span class="badge text-bg-danger">Out of Stock</span>
+                                {% elif equipment.quantity_available <= 5 %}
+                                    <span class="badge text-bg-warning">Low Stock</span>
+                                {% else %}
+                                    <span class="badge text-bg-success">OK</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'equipment_detail' equipment.equipment_id %}" class="btn btn-sm btn-info" title="View equipment details" aria-label="View {{ equipment.name }}">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if profile.role == "admin" or profile.role == "staff" %}
+                                    <a href="{% url 'equipment_update' equipment.equipment_id %}" class="btn btn-sm btn-warning" title="Edit equipment" aria-label="Edit {{ equipment.name }}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'equipment_delete' equipment.equipment_id %}" class="btn btn-sm btn-danger" title="Delete equipment" aria-label="Delete {{ equipment.name }}">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="10">
+                                <div class="empty-state">
+                                    <i class="bi bi-inbox display-5"></i>
+                                    <h5>No equipment found.</h5>
+                                    <p class="text-muted">Try adjusting your search or filters.</p>
+                                    {% if profile.role == "admin" or profile.role == "staff" %}
+                                        <a href="{% url 'equipment_create' %}" class="btn btn-primary">
+                                            <i class="bi bi-plus-circle me-2"></i>Add Equipment
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
                 </tbody>
-
             </table>
-
         </div>
 
+        {% if equipments.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if equipments.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if category_filter %}&category_filter={{ category_filter }}{% endif %}{% if status_filter %}&status_filter={{ status_filter }}{% endif %}{% if stock_filter %}&stock_filter={{ stock_filter }}{% endif %}" aria-label="First page">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ equipments.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if category_filter %}&category_filter={{ category_filter }}{% endif %}{% if status_filter %}&status_filter={{ status_filter }}{% endif %}{% if stock_filter %}&stock_filter={{ stock_filter }}{% endif %}" aria-label="Previous page">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            Page {{ equipments.number }} of {{ equipments.paginator.num_pages }}
+                        </span>
+                    </li>
+                    {% if equipments.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ equipments.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if category_filter %}&category_filter={{ category_filter }}{% endif %}{% if status_filter %}&status_filter={{ status_filter }}{% endif %}{% if stock_filter %}&stock_filter={{ stock_filter }}{% endif %}" aria-label="Next page">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ equipments.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if category_filter %}&category_filter={{ category_filter }}{% endif %}{% if status_filter %}&status_filter={{ status_filter }}{% endif %}{% if stock_filter %}&stock_filter={{ stock_filter }}{% endif %}" aria-label="Last page">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
     </div>
-
 </div>
 
 {% endblock %}

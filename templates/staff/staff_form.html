@@ -1,33 +1,32 @@
 {% extends "dashboard/base.html" %}
 
 {% block title %}Edit Staff{% endblock %}
+{% block active_page %}staff_list{% endblock %}
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="page-header">
+    <h2><i class="bi bi-pencil me-2"></i>Edit Staff</h2>
+    <a href="{% url 'staff_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Back to Staff
+    </a>
+</div>
 
-<h2>Edit Staff</h2>
-
-<form method="POST">
-
-{% csrf_token %}
-
-{{ form.as_p }}
-
-<button class="btn btn-success">
-
-Save
-
-</button>
-
-<a href="{% url 'staff_list' %}" class="btn btn-secondary">
-
-Cancel
-
-</a>
-
-</form>
-
+<div class="content-card">
+    <div class="card-body">
+        <form method="POST" data-disable-on-submit>
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-check-circle me-2"></i>Save Changes
+                </button>
+                <a href="{% url 'staff_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-2"></i>Cancel
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
 
 {% endblock %}

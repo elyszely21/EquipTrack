@@ -1,0 +1,157 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Borrow Request #{{ borrow_request.request_id }}{% endblock %}
+{% block active_page %}borrow{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2><i class="bi bi-arrow-left-right me-2"></i>Borrow Request #{{ borrow_request.request_id }}</h2>
+        <p class="text-muted mb-0">
+            Requested by: {{ borrow_request.user.get_full_name|default:borrow_request.user.username }}
+            &middot; Date: {{ borrow_request.request_date|date:"M d, Y h:i A" }}
+        </p>
+    </div>
+    <span class="badge {% if borrow_request.status == 'pending' %}text-bg-warning{% elif borrow_request.status == 'approved' %}text-bg-success{% elif borrow_request.status == 'rejected' %}text-bg-danger{% elif borrow_request.status == 'returned' %}text-bg-info{% endif %}">
+        {{ borrow_request.get_status_display }}
+    </span>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Requested Items</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Equipment</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in borrow_request.items.all %}
+                                <tr>
+                                    <td>{{ item.equipment.name }}</td>
+                                    <td>{{ item.equipment.category }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td><span class="badge text-bg-success">Requested</span></td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4">
+                                        <div class="empty-state">
+                                            <p class="text-muted mb-0">No items in this request.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {% if borrow_request.status == 'pending' and profile.role == 'admin' %}
+            <div class="content-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-check-circle me-2"></i>Approval Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <form method="post" action="{% url 'borrow_update' borrow_request.request_id %}" data-confirm-delete data-confirm-message="Approve this request and decrease stock?">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve">
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="bi bi-check-circle me-2"></i>Approve Request
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <form method="post" action="{% url 'borrow_update' borrow_request.request_id %}" data-confirm-delete data-confirm-message="Reject this borrow request?">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reject">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="bi bi-x-circle me-2"></i>Reject Request
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if borrow_request.status == 'approved' and (profile.role == 'admin' or profile.role == 'staff') %}
+            <div class="content-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-arrow-return-left me-2"></i>Process Return</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        This request has been approved. Process the return when the equipment is returned.
+                    </p>
+                    <a href="{% url 'create_return' borrow_request.request_id %}" class="btn btn-primary">
+                        <i class="bi bi-arrow-return-left me-2"></i>Create Return Record
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <div class="content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Request Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-5">Request ID:</dt>
+                    <dd class="col-sm-7">#{{ borrow_request.request_id }}</dd>
+
+                    <dt class="col-sm-5">Borrower:</dt>
+                    <dd class="col-sm-7">{{ borrow_request.user.get_full_name|default:borrow_request.user.username }}</dd>
+
+                    <dt class="col-sm-5">Username:</dt>
+                    <dd class="col-sm-7">{{ borrow_request.user.username }}</dd>
+
+                    <dt class="col-sm-5">Date Requested:</dt>
+                    <dd class="col-sm-7">{{ borrow_request.request_date|date:"M d, Y h:i A" }}</dd>
+
+                    <dt class="col-sm-5">Status:</dt>
+                    <dd class="col-sm-7">
+                        <span class="badge {% if borrow_request.status == 'pending' %}text-bg-warning{% elif borrow_request.status == 'approved' %}text-bg-success{% elif borrow_request.status == 'rejected' %}text-bg-danger{% elif borrow_request.status == 'returned' %}text-bg-info{% endif %}">
+                            {{ borrow_request.get_status_display }}
+                        </span>
+                    </dd>
+
+                    {% if borrow_request.approved_by %}
+                        <dt class="col-sm-5">Approved By:</dt>
+                        <dd class="col-sm-7">{{ borrow_request.approved_by.get_full_name|default:borrow_request.approved_by.username }}</dd>
+
+                        <dt class="col-sm-5">Approved At:</dt>
+                        <dd class="col-sm-7">{{ borrow_request.approved_at|date:"M d, Y h:i A"|default:"-" }}</dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+
+        {% if borrow_request.status == 'pending' and borrow_request.user == request.user %}
+            <div class="content-card">
+                <div class="card-body">
+                    <a href="{% url 'borrow_delete' borrow_request.request_id %}" class="btn btn-danger w-100">
+                        <i class="bi bi-trash me-2"></i>Delete Request
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Create Borrow Request{% endblock %}
+{% block active_page %}borrow_create{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h2><i class="bi bi-arrow-left-right me-2"></i>Create Borrow Request</h2>
+</div>
+
+<div class="content-card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Select Equipment to Borrow</h5>
+    </div>
+    <div class="card-body">
+        <p class="text-muted mb-4">
+            Select the equipment you want to borrow and specify the quantity for each item.
+        </p>
+
+        {% if available_equipment %}
+            <form method="post" action="" data-disable-on-submit>
+                {% csrf_token %}
+
+                <div class="table-responsive mb-4">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>
+                                    <input type="checkbox" id="selectAll" class="form-check-input">
+                                    <label for="selectAll" class="form-check-label ms-2">Select All</label>
+                                </th>
+                                <th>Equipment</th>
+                                <th>Category</th>
+                                <th>Available</th>
+                                <th>Quantity to Borrow</th>
+                                <th>Stock Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for equipment in available_equipment %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" name="equipment_ids" value="{{ equipment.equipment_id }}" id="eq_{{ equipment.equipment_id }}" class="form-check-input equipment-checkbox">
+                                    </td>
+                                    <td>
+                                        <label for="eq_{{ equipment.equipment_id }}" class="form-check-label">
+                                            {{ equipment.name }}
+                                        </label>
+                                    </td>
+                                    <td>{{ equipment.category }}</td>
+                                    <td>{{ equipment.quantity_available }}</td>
+                                    <td>
+                                        <input type="number" name="quantity_{{ equipment.equipment_id }}" class="form-control form-control-sm quantity-input" min="1" max="{{ equipment.quantity_available }}" value="1" style="width: 80px;" data-equipment-id="{{ equipment.equipment_id }}" disabled>
+                                    </td>
+                                    <td>
+                                        {% if equipment.quantity_available == 0 %}
+                                            <span class="badge text-bg-danger">Out of Stock</span>
+                                        {% elif equipment.quantity_available <= 5 %}
+                                            <span class="badge text-bg-warning">Low Stock</span>
+                                        {% else %}
+                                            <span class="badge text-bg-success">Available</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send me-2"></i>Submit Borrow Request
+                    </button>
+                    <a href="{% url 'equipment_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Equipment
+                    </a>
+                </div>
+            </form>
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-inbox display-5"></i>
+                <h5>No Equipment Available</h5>
+                <p class="text-muted">There is no equipment available for borrowing at this time.</p>
+                <a href="{% url 'equipment_list' %}" class="btn btn-primary">
+                    <i class="bi bi-box-seam me-2"></i>View All Equipment
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function syncQuantityInput(checkbox) {
+    const quantityInput = document.querySelector(
+        `input.quantity-input[data-equipment-id="${checkbox.value}"]`
+    );
+    if (!quantityInput) return;
+    quantityInput.disabled = !checkbox.checked;
+    if (checkbox.checked) {
+        if (!quantityInput.value || Number(quantityInput.value) < 1) {
+            quantityInput.value = "1";
+        }
+    }
+}
+
+const selectAll = document.getElementById('selectAll');
+if (selectAll) {
+    selectAll.addEventListener('change', function() {
+        document.querySelectorAll('.equipment-checkbox').forEach(checkbox => {
+            checkbox.checked = this.checked;
+            syncQuantityInput(checkbox);
+        });
+    });
+}
+
+document.querySelectorAll('.equipment-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        syncQuantityInput(this);
+    });
+    syncQuantityInput(checkbox);
+});
+
+document.querySelector('form')?.addEventListener('submit', function(e) {
+    const checked = document.querySelectorAll('.equipment-checkbox:checked');
+    if (!checked.length) {
+        e.preventDefault();
+        alert('Select at least one piece of equipment.');
+    }
+});
+</script>
+{% endblock %}

@@ -1,73 +1,138 @@
 {% extends "dashboard/base.html" %}
 
-{% block title %}Low Stock{% endblock %}
+{% block title %}Stock Alerts{% endblock %}
+{% block active_page %}inventory{% endblock %}
 
 {% block content %}
 
-<h2 class="mb-4">
-
-Low Stock Equipment
-
-</h2>
-
-<div class="card shadow">
-
-<div class="card-body">
-
-<table class="table table-striped">
-
-<thead>
-
-<tr>
-
-<th>Name</th>
-
-<th>Available</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for item in inventory %}
-
-<tr>
-
-<td>{{ item.name }}</td>
-
-<td>
-
-<span class="badge bg-danger">
-
-{{ item.quantity_available }}
-
-</span>
-
-</td>
-
-</tr>
-
-{% empty %}
-
-<tr>
-
-<td colspan="2" class="text-center">
-
-No low stock equipment.
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
+<div class="page-header">
+    <h2><i class="bi bi-exclamation-triangle me-2"></i>Stock Alerts</h2>
 </div>
 
-</div>
+{% if low_stock_items %}
+    <div class="content-card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Low Stock Items (&lt;= 5 available)</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th class="text-center">Total</th>
+                            <th class="text-center">Available</th>
+                            <th class="text-center">Borrowed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in low_stock_items %}
+                            <tr>
+                                <td class="text-center">
+                                    {% if item.image %}
+                                        <img src="{{ item.image.url }}" alt="{{ item.name }}" class="img-thumb-sm">
+                                    {% else %}
+                                        <i class="bi bi-image text-muted"></i>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ item.name }}</strong>
+                                    {% if item.description %}
+                                        <br><small class="text-muted">{{ item.description|truncatechars:30 }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.category }}</td>
+                                <td class="text-center">{{ item.quantity_total }}</td>
+                                <td class="text-center">
+                                    <span class="badge text-bg-warning">{{ item.quantity_available }}</span>
+                                </td>
+                                <td class="text-center">{{ item.get_borrowed_quantity }}</td>
+                                <td>
+                                    <a href="{% url 'equipment_detail' item.equipment_id %}" class="btn btn-sm btn-info" title="View details" aria-label="View {{ item.name }}">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'equipment_update' item.equipment_id %}" class="btn btn-sm btn-warning" title="Edit" aria-label="Edit {{ item.name }}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+{% if out_of_stock_items %}
+    <div class="content-card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="bi bi-x-circle-fill me-2"></i>Out of Stock Items</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th class="text-center">Total</th>
+                            <th class="text-center">Available</th>
+                            <th class="text-center">Borrowed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in out_of_stock_items %}
+                            <tr>
+                                <td class="text-center">
+                                    {% if item.image %}
+                                        <img src="{{ item.image.url }}" alt="{{ item.name }}" class="img-thumb-sm">
+                                    {% else %}
+                                        <i class="bi bi-image text-muted"></i>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ item.name }}</strong>
+                                    {% if item.description %}
+                                        <br><small class="text-muted">{{ item.description|truncatechars:30 }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.category }}</td>
+                                <td class="text-center">{{ item.quantity_total }}</td>
+                                <td class="text-center">
+                                    <span class="badge text-bg-danger">{{ item.quantity_available }}</span>
+                                </td>
+                                <td class="text-center">{{ item.get_borrowed_quantity }}</td>
+                                <td>
+                                    <a href="{% url 'equipment_detail' item.equipment_id %}" class="btn btn-sm btn-info" title="View details" aria-label="View {{ item.name }}">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'equipment_update' item.equipment_id %}" class="btn btn-sm btn-warning" title="Edit" aria-label="Edit {{ item.name }}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+{% if not low_stock_items and not out_of_stock_items %}
+    <div class="content-card text-center py-5">
+        <div class="card-body">
+            <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+            <h4 class="mt-3">All Stock Levels Are Good!</h4>
+            <p class="text-muted">No equipment items are low or out of stock.</p>
+        </div>
+    </div>
+{% endif %}
 
 {% endblock %}

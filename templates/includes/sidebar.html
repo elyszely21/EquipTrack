@@ -1,0 +1,63 @@
+<aside class="sidebar">
+    {% if profile.role == "admin" %}
+        <div class="sidebar-title">Admin</div>
+    {% elif profile.role == "staff" %}
+        <div class="sidebar-title">Staff</div>
+    {% else %}
+        <div class="sidebar-title">Menu</div>
+    {% endif %}
+
+    <a href="{% url 'dashboard' %}" class="sidebar-link{% if active_page == 'dashboard' %} active{% endif %}">
+        <i class="bi bi-speedometer2"></i>
+        Dashboard
+    </a>
+
+    {% if profile.role == "admin" %}
+        <a href="{% url 'staff_list' %}" class="sidebar-link{% if active_page == 'staff_list' %} active{% endif %}">
+            <i class="bi bi-people"></i>
+            Staff Management
+        </a>
+        <a href="{% url 'staff_approval' %}" class="sidebar-link{% if active_page == 'staff_approval' %} active{% endif %}">
+            <i class="bi bi-person-check"></i>
+            Staff Approval
+        </a>
+    {% endif %}
+
+    <a href="{% url 'equipment_list' %}" class="sidebar-link{% if active_page == 'equipment' %} active{% endif %}">
+        <i class="bi bi-hdd-stack"></i>
+        Equipment
+    </a>
+
+    {% if profile.role == "borrower" %}
+        <a href="{% url 'borrow_create' %}" class="sidebar-link{% if active_page == 'borrow_create' %} active{% endif %}">
+            <i class="bi bi-bag-plus"></i>
+            Borrow Equipment
+        </a>
+    {% endif %}
+
+    <a href="{% url 'borrow_list' %}" class="sidebar-link{% if active_page == 'borrow' %} active{% endif %}">
+        <i class="bi bi-arrow-left-right"></i>
+        Borrow Requests
+    </a>
+
+    <a href="{% url 'return_list' %}" class="sidebar-link{% if active_page == 'return' %} active{% endif %}">
+        <i class="bi bi-arrow-return-left"></i>
+        Return Records
+    </a>
+
+    {% if profile.role == "admin" or profile.role == "staff" %}
+        <a href="{% url 'inventory_list' %}" class="sidebar-link{% if active_page == 'inventory' %} active{% endif %}">
+            <i class="bi bi-boxes"></i>
+            Inventory
+        </a>
+        <a href="{% url 'reports' %}" class="sidebar-link{% if active_page == 'reports' %} active{% endif %}">
+            <i class="bi bi-clipboard-data"></i>
+            Reports
+        </a>
+    {% endif %}
+
+    <a href="{% url 'profile' %}" class="sidebar-link{% if active_page == 'profile' %} active{% endif %}">
+        <i class="bi bi-person"></i>
+        My Profile
+    </a>
+</aside>

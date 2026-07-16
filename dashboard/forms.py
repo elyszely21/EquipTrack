@@ -14,6 +14,7 @@ class EquipmentForm(forms.ModelForm):
             "quantity_total",
             "quantity_available",
             "status",
+            "image",
         ]
 
         widgets = {
@@ -59,6 +60,15 @@ class EquipmentForm(forms.ModelForm):
                     "class": "form-select"
                 }
             ),
+
+            "image": forms.ClearableFileInput(
+                attrs={
+                    "class": "form-control",
+                    "accept": "image/jpeg,image/png,image/gif,image/webp"
+                }
+            ),
+
+
         }
 
     def clean(self):

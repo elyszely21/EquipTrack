@@ -1,155 +1,106 @@
 {% extends "dashboard/base.html" %}
 
-{% block title %}
-
-Reports
-
-{% endblock %}
+{% block title %}Reports{% endblock %}
+{% block active_page %}reports{% endblock %}
 
 {% block content %}
 
-<h2 class="mb-4">
-
-System Reports
-
-</h2>
-
-<div class="row">
-
-<div class="col-md-3 mb-3">
-
-<div class="card shadow">
-
-<div class="card-body text-center">
-
-<h6>Total Equipment</h6>
-
-<h2>{{ equipment_count }}</h2>
-
+<div class="page-header">
+    <h2><i class="bi bi-clipboard-data me-2"></i>System Reports</h2>
 </div>
 
-</div>
+<section class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <div class="card-icon bg-blue">
+                    <i class="bi bi-hdd-rack"></i>
+                </div>
+                <span>Total Equipment</span>
+                <strong>{{ equipment_count }}</strong>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <div class="card-icon bg-green">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <span>Available Equipment</span>
+                <strong>{{ available_equipment }}</strong>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <div class="card-icon bg-orange">
+                    <i class="bi bi-arrow-left-right"></i>
+                </div>
+                <span>Total Borrow Requests</span>
+                <strong>{{ borrow_count }}</strong>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <div class="card-icon bg-cyan">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+                <span>Pending Requests</span>
+                <strong>{{ pending_count }}</strong>
+            </div>
+        </div>
+    </div>
+</section>
 
-</div>
-
-<div class="col-md-3 mb-3">
-
-<div class="card shadow">
-
-<div class="card-body text-center">
-
-<h6>Available Equipment</h6>
-
-<h2>{{ available_equipment }}</h2>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="col-md-3 mb-3">
-
-<div class="card shadow">
-
-<div class="card-body text-center">
-
-<h6>Total Borrow Requests</h6>
-
-<h2>{{ borrow_count }}</h2>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="col-md-3 mb-3">
-
-<div class="card shadow">
-
-<div class="card-body text-center">
-
-<h6>Pending Requests</h6>
-
-<h2>{{ pending_count }}</h2>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<hr>
-
-<div class="row">
-
-<div class="col-md-3 mb-3">
-
-<div class="card border-success">
-
-<div class="card-body text-center">
-
-<h6>Approved</h6>
-
-<h2>{{ approved_count }}</h2>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="col-md-3 mb-3">
-
-<div class="card border-primary">
-
-<div class="card-body text-center">
-
-<h6>Returned</h6>
-
-<h2>{{ returned_count }}</h2>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="col-md-3 mb-3">
-
-<div class="card border-warning">
-
-<div class="card-body text-center">
-
-<h6>Staff Users</h6>
-
-<h2>{{ staff_count }}</h2>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="col-md-3 mb-3">
-
-<div class="card border-info">
-
-<div class="card-body text-center">
-
-<h6>Borrowers</h6>
-
-<h2>{{ borrower_count }}</h2>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
+<section class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <div class="card-icon bg-green">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <span>Approved</span>
+                <strong>{{ approved_count }}</strong>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <div class="card-icon bg-blue">
+                    <i class="bi bi-arrow-return-left"></i>
+                </div>
+                <span>Returned</span>
+                <strong>{{ returned_count }}</strong>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <div class="card-icon bg-orange">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <span>Staff Users</span>
+                <strong>{{ staff_count }}</strong>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <div class="card-icon bg-cyan">
+                    <i class="bi bi-people"></i>
+                </div>
+                <span>Borrowers</span>
+                <strong>{{ borrower_count }}</strong>
+            </div>
+        </div>
+    </div>
+</section>
 
 {% endblock %}

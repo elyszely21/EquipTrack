@@ -1,7 +1,19 @@
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, FileExtensionValidator
 from django.db import models
 from django.utils import timezone
+
+
+def validate_image_size(value):
+    """Validate that the uploaded image doesn't exceed MAX_UPLOAD_SIZE"""
+    max_size = getattr(settings, 'MAX_UPLOAD_SIZE', 5242880)  # 5MB default
+    if value.size > max_size:
+        raise models.ValidationError(f'Image size must be less than {max_size / 1024 / 1024}MB')
+ 
+
+def get_image_upload_path(instance, filename):
+    """Generate upload path for equipment images"""
+    return f'equipment_images/{instance.equipment_id}/{filename}'
 
 
 class Equipment(models.Model):
@@ -22,6 +34,16 @@ class Equipment(models.Model):
     quantity_total = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     quantity_available = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_AVAILABLE)
+    image = models.ImageField(
+        upload_to=get_image_upload_path,
+        blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),
+            validate_image_size
+        ],
+        help_text="Upload equipment image (max 5MB, JPG/PNG/GIF/WebP)"
+    )
 
     class Meta:
         ordering = ["name"]
@@ -35,8 +57,23 @@ class Equipment(models.Model):
 
         if self.quantity_available == 0 and self.status == self.STATUS_AVAILABLE:
             self.status = self.STATUS_UNAVAILABLE
+        elif self.quantity_available > 0 and self.status != self.STATUS_MAINTENANCE:
+            self.status = self.STATUS_AVAILABLE
 
         super().save(*args, **kwargs)
+    
+    def get_stock_status(self):
+        """Return stock status for display"""
+        if self.quantity_available == 0:
+            return "out_of_stock"
+        elif self.quantity_available <= 5:
+            return "low_stock"
+        else:
+            return "ok"
+    
+    def get_borrowed_quantity(self):
+        """Calculate borrowed quantity"""
+        return self.quantity_total - self.quantity_available
 
 
 class BorrowRequest(models.Model):

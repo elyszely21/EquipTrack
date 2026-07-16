@@ -1,0 +1,149 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Return Records{% endblock %}
+{% block active_page %}return{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2><i class="bi bi-arrow-return-left me-2"></i>Return Records</h2>
+        <p class="text-muted mb-0">Manage equipment return transactions.</p>
+    </div>
+</div>
+
+<div class="content-card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" placeholder="Search by request ID, borrower, or staff..." value="{{ search }}" aria-label="Search returns">
+                    <button class="btn btn-primary" type="submit" aria-label="Search">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="status_filter" class="form-select" aria-label="Filter by status">
+                    <option value="">All Status</option>
+                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="late" {% if status_filter == 'late' %}selected{% endif %}>Late</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="date_from" class="form-control" placeholder="From" value="{{ date_from }}" aria-label="Filter from date">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="date_to" class="form-control" placeholder="To" value="{{ date_to }}" aria-label="Filter to date">
+            </div>
+            <div class="col-md-1">
+                <a href="?" class="btn btn-outline-secondary w-100" aria-label="Clear filters">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Request ID</th>
+                        <th>Borrower</th>
+                        <th>Staff</th>
+                        <th>Borrowed Date</th>
+                        <th>Due Date</th>
+                        <th>Return Date</th>
+                        <th>Status</th>
+                        <th width="120">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for return_record in return_records %}
+                        <tr>
+                            <td>#{{ return_record.transaction_id }}</td>
+                            <td>#{{ return_record.request.request_id }}</td>
+                            <td>{{ return_record.request.user.get_full_name|default:return_record.request.user.username }}</td>
+                            <td>{{ return_record.staff.get_full_name|default:return_record.staff.username }}</td>
+                            <td>{{ return_record.borrowed_date|date:"M d, Y" }}</td>
+                            <td>{{ return_record.due_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if return_record.return_date %}
+                                    {{ return_record.return_date|date:"M d, Y" }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if return_record.return_date %}
+                                    <span class="badge text-bg-success">Completed</span>
+                                {% elif return_record.due_date < today %}
+                                    <span class="badge text-bg-danger">Late</span>
+                                {% else %}
+                                    <span class="badge text-bg-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'return_detail' return_record.transaction_id %}" class="btn btn-sm btn-primary" aria-label="View return record {{ return_record.transaction_id }}">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="9">
+                                <div class="empty-state">
+                                    <i class="bi bi-inbox display-5"></i>
+                                    <h5>No return records found.</h5>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if return_records.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if return_records.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status_filter={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" aria-label="First page">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ return_records.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status_filter={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" aria-label="Previous page">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            Page {{ return_records.number }} of {{ return_records.paginator.num_pages }}
+                        </span>
+                    </li>
+                    {% if return_records.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ return_records.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status_filter={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" aria-label="Next page">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ return_records.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status_filter={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" aria-label="Last page">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

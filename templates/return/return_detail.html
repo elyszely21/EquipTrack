@@ -1,0 +1,128 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Return Record #{{ return_record.transaction_id }}{% endblock %}
+{% block active_page %}return{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2><i class="bi bi-arrow-return-left me-2"></i>Return Record #{{ return_record.transaction_id }}</h2>
+        <p class="text-muted mb-0">
+            Processed by: {{ return_record.staff.get_full_name|default:return_record.staff.username }}
+        </p>
+    </div>
+    <span class="badge {% if return_record.return_date %}text-bg-success{% elif return_record.due_date < today %}text-bg-danger{% else %}text-bg-warning{% endif %}">
+        {% if return_record.return_date %}Completed{% elif return_record.due_date < today %}Late{% else %}Pending{% endif %}
+    </span>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-file-earmark me-2"></i>Return Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Transaction ID:</dt>
+                    <dd class="col-sm-8">#{{ return_record.transaction_id }}</dd>
+
+                    <dt class="col-sm-4">Borrow Request:</dt>
+                    <dd class="col-sm-8">
+                        <a href="{% url 'borrow_detail' return_record.request.request_id %}">
+                            #{{ return_record.request.request_id }}
+                        </a>
+                    </dd>
+
+                    <dt class="col-sm-4">Borrower:</dt>
+                    <dd class="col-sm-8">{{ return_record.request.user.get_full_name|default:return_record.request.user.username }}</dd>
+
+                    <dt class="col-sm-4">Processed By:</dt>
+                    <dd class="col-sm-8">{{ return_record.staff.get_full_name|default:return_record.staff.username }}</dd>
+
+                    <dt class="col-sm-4">Borrowed Date:</dt>
+                    <dd class="col-sm-8">{{ return_record.borrowed_date|date:"M d, Y" }}</dd>
+
+                    <dt class="col-sm-4">Due Date:</dt>
+                    <dd class="col-sm-8">{{ return_record.due_date|date:"M d, Y" }}</dd>
+
+                    <dt class="col-sm-4">Return Date:</dt>
+                    <dd class="col-sm-8">
+                        {% if return_record.return_date %}
+                            {{ return_record.return_date|date:"M d, Y" }}
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4">Condition Notes:</dt>
+                    <dd class="col-sm-8">{{ return_record.condition_notes|default:"-" }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-boxes me-2"></i>Returned Items</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Equipment</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in return_record.request.items.all %}
+                                <tr>
+                                    <td>{{ item.equipment.name }}</td>
+                                    <td>{{ item.equipment.category }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>
+                                        {% if item.equipment.status == 'available' %}
+                                            <span class="badge text-bg-success">Available</span>
+                                        {% elif item.equipment.status == 'maintenance' %}
+                                            <span class="badge text-bg-warning">Maintenance</span>
+                                        {% else %}
+                                            <span class="badge text-bg-danger">Unavailable</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightning-charge me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'return_list' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-list me-2"></i>All Return Records
+                    </a>
+                    <a href="{% url 'borrow_detail' return_record.request.request_id %}" class="btn btn-outline-primary">
+                        <i class="bi bi-eye me-2"></i>View Borrow Request
+                    </a>
+                    {% if return_record.return_date %}
+                        <a href="{% url 'reports' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-bar-chart me-2"></i>View Reports
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
