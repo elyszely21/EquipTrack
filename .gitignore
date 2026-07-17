@@ -1,8 +1,9 @@
 # Environment variables
 .env
+.env.local
 
 # Virtual Environment
-.venv/
+venv/
 
 # PyCharm
 .idea/
@@ -16,3 +17,6 @@ db.sqlite3
 
 # Django media uploads
 media/
+
+# Django static files (collected)
+staticfiles/
