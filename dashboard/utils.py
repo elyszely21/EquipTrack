@@ -1,10 +1,10 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from accounts.models import UserProfile
-from accounts.utils import is_admin_user, is_staff_user, is_borrower_user
+from accounts.utils import is_admin_user, is_staff_user, is_borrower_user, is_admin_or_staff
 
 
-__all__ = ["is_admin_user", "is_staff_user", "is_borrower_user", "paginate_queryset", "get_safe_profile"]
+__all__ = ["is_admin_user", "is_staff_user", "is_borrower_user", "is_admin_or_staff", "paginate_queryset", "get_safe_profile"]
 
 
 def get_safe_profile(user):

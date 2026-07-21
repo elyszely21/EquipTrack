@@ -21,13 +21,9 @@ document.addEventListener("DOMContentLoaded", function () {
             if (btn) {
                 btn.classList.add("btn-loading");
                 btn.disabled = true;
+                btn.setAttribute("data-original-text", btn.textContent);
+                btn.textContent = "Processing...";
             }
-            // Disable all inputs
-            form.querySelectorAll("input, select, textarea, button").forEach(function (el) {
-                if (el.type !== "hidden") {
-                    el.disabled = true;
-                }
-            });
         });
     });
 

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 from .models import Equipment, BorrowRequest
 from .forms import EquipmentForm
 from . import services
-from .utils import is_admin_user, is_staff_user, is_borrower_user, get_safe_profile
+from .utils import is_admin_user, is_staff_user, is_borrower_user, is_admin_or_staff, get_safe_profile
 
 
 # ============================================================================
@@ -53,6 +53,10 @@ def equipment_list(request):
 @login_required
 def equipment_create(request):
     """Create new equipment."""
+    if not is_admin_or_staff(request.user):
+        messages.error(request, "You do not have permission to create equipment.")
+        return redirect("equipment_list")
+
     if request.method == "POST":
         form = EquipmentForm(request.POST)
         try:
@@ -90,6 +94,7 @@ def equipment_create(request):
             messages.success(request, f"Equipment '{equipment.name}' added successfully.")
             return redirect("equipment_list")
         else:
+            logger.warning("EquipmentForm validation failed: %s", form.errors.as_json())
             messages.error(request, "Please correct the errors below.")
     else:
         form = EquipmentForm()
@@ -108,6 +113,10 @@ def equipment_create(request):
 @login_required
 def equipment_update(request, equipment_id):
     """Update existing equipment."""
+    if not is_admin_or_staff(request.user):
+        messages.error(request, "You do not have permission to edit equipment.")
+        return redirect("equipment_list")
+
     equipment = get_object_or_404(Equipment, equipment_id=equipment_id)
 
     if request.method == "POST":
@@ -149,6 +158,7 @@ def equipment_update(request, equipment_id):
             messages.success(request, f"Equipment '{equipment.name}' updated successfully.")
             return redirect("equipment_list")
         else:
+            logger.warning("EquipmentForm validation failed for %s: %s", equipment_id, form.errors.as_json())
             messages.error(request, "Please correct the errors below.")
     else:
         form = EquipmentForm(instance=equipment)
@@ -176,6 +186,10 @@ def equipment_detail(request, equipment_id):
 @login_required
 def equipment_delete(request, equipment_id):
     """Delete equipment."""
+    if not is_admin_or_staff(request.user):
+        messages.error(request, "You do not have permission to delete equipment.")
+        return redirect("equipment_list")
+
     equipment = get_object_or_404(Equipment, equipment_id=equipment_id)
 
     if request.method == "POST":

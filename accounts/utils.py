@@ -29,3 +29,8 @@ def is_borrower_user(user):
         and user.profile.role == UserProfile.ROLE_BORROWER
         and user.profile.status == UserProfile.STATUS_ACTIVE
     )
+
+
+def is_admin_or_staff(user):
+    """Check if user has an active admin or staff profile."""
+    return is_admin_user(user) or is_staff_user(user)
