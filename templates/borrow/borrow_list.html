@@ -52,27 +52,31 @@
                                     <i class="bi bi-eye"></i> View
                                 </a>
 
-                                {% if borrow.status == "pending" and (borrow.user == request.user or profile.role == "admin" or profile.role == "staff") %}
-                                    <a href="{% url 'borrow_delete' borrow.request_id %}" class="btn btn-sm btn-danger" aria-label="Delete borrow request {{ borrow.request_id }}">
-                                        <i class="bi bi-trash"></i> Delete
-                                    </a>
+                                {% if borrow.status == "pending" %}
+                                    {% if borrow.user == request.user or profile.role == "admin" or profile.role == "staff" %}
+                                        <a href="{% url 'borrow_delete' borrow.request_id %}" class="btn btn-sm btn-danger" aria-label="Delete borrow request {{ borrow.request_id }}">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </a>
+                                    {% endif %}
                                 {% endif %}
 
-                                {% if (profile.role == "admin" or profile.role == "staff") and borrow.status == "pending" %}
-                                    <form method="post" action="{% url 'borrow_update' borrow.request_id %}" class="d-inline" data-disable-on-submit>
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="approve">
-                                        <button type="submit" class="btn btn-sm btn-success" aria-label="Approve borrow request {{ borrow.request_id }}">
-                                            <i class="bi bi-check-circle"></i> Approve
-                                        </button>
-                                    </form>
-                                    <form method="post" action="{% url 'borrow_update' borrow.request_id %}" class="d-inline" data-disable-on-submit>
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="reject">
-                                        <button type="submit" class="btn btn-sm btn-danger" aria-label="Reject borrow request {{ borrow.request_id }}">
-                                            <i class="bi bi-x-circle"></i> Reject
-                                        </button>
-                                    </form>
+                                {% if profile.role == "admin" or profile.role == "staff" %}
+                                    {% if borrow.status == "pending" %}
+                                        <form method="post" action="{% url 'borrow_update' borrow.request_id %}" class="d-inline" data-disable-on-submit>
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="approve">
+                                            <button type="submit" class="btn btn-sm btn-success" aria-label="Approve borrow request {{ borrow.request_id }}">
+                                                <i class="bi bi-check-circle"></i> Approve
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{% url 'borrow_update' borrow.request_id %}" class="d-inline" data-disable-on-submit>
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="reject">
+                                            <button type="submit" class="btn btn-sm btn-danger" aria-label="Reject borrow request {{ borrow.request_id }}">
+                                                <i class="bi bi-x-circle"></i> Reject
+                                            </button>
+                                        </form>
+                                    {% endif %}
                                 {% endif %}
 
                                 {% if profile.role == "staff" or profile.role == "admin" %}
