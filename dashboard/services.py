@@ -1,10 +1,13 @@
 import json
+import logging
 from datetime import datetime
 
 from django.db import transaction
 from django.db.models import Q, Count, Sum
 from django.utils import timezone
 from datetime import timedelta
+
+logger = logging.getLogger(__name__)
 
 from .models import Equipment, BorrowRequest, BorrowRequestItem, ReturnRecord
 from accounts.models import UserProfile
@@ -344,22 +347,30 @@ def get_borrow_list_context(user, search, status_filter, user_filter, date_from,
 
     Applies role-based scoping: borrowers only see their own requests.
     """
-    if is_admin_user(user) or is_staff_user(user):
-        borrow_requests = BorrowRequest.objects.select_related(
-            "user", "approved_by",
-        ).prefetch_related("items__equipment").all()
-    else:
-        borrow_requests = BorrowRequest.objects.select_related(
-            "user", "approved_by",
-        ).prefetch_related("items__equipment").filter(user=user)
+    try:
+        if is_admin_user(user) or is_staff_user(user):
+            borrow_requests = BorrowRequest.objects.select_related(
+                "user", "approved_by",
+            ).prefetch_related("items__equipment").all()
+        else:
+            borrow_requests = BorrowRequest.objects.select_related(
+                "user", "approved_by",
+            ).prefetch_related("items__equipment").filter(user=user)
+    except Exception:
+        logger.exception("get_borrow_list_context: base queryset failed (user=%s)", user.pk)
+        raise
 
-    if search:
-        borrow_requests = borrow_requests.filter(
-            Q(user__username__icontains=search)
-            | Q(user__first_name__icontains=search)
-            | Q(user__last_name__icontains=search)
-            | Q(items__equipment__name__icontains=search)
-        ).distinct()
+    try:
+        if search:
+            borrow_requests = borrow_requests.filter(
+                Q(user__username__icontains=search)
+                | Q(user__first_name__icontains=search)
+                | Q(user__last_name__icontains=search)
+                | Q(items__equipment__name__icontains=search)
+            ).distinct()
+    except Exception:
+        logger.exception("get_borrow_list_context: search filter failed")
+        raise
 
     if status_filter:
         borrow_requests = borrow_requests.filter(status=status_filter)
@@ -385,13 +396,17 @@ def get_borrow_list_context(user, search, status_filter, user_filter, date_from,
         borrow_requests = borrow_requests.order_by(order_by)
 
     from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-    paginator = Paginator(borrow_requests, 10)
     try:
-        paginated_requests = paginator.page(page)
-    except PageNotAnInteger:
-        paginated_requests = paginator.page(1)
-    except EmptyPage:
-        paginated_requests = paginator.page(paginator.num_pages)
+        paginator = Paginator(borrow_requests, 10)
+        try:
+            paginated_requests = paginator.page(page)
+        except PageNotAnInteger:
+            paginated_requests = paginator.page(1)
+        except EmptyPage:
+            paginated_requests = paginator.page(paginator.num_pages)
+    except Exception:
+        logger.exception("get_borrow_list_context: pagination/queryset evaluation failed")
+        raise
 
     return {
         "borrow_requests": paginated_requests,
@@ -411,11 +426,15 @@ def get_borrow_detail(request_id):
     """
     from django.shortcuts import get_object_or_404
 
-    return get_object_or_404(
-        BorrowRequest.objects.select_related("user", "approved_by")
-        .prefetch_related("items__equipment"),
-        request_id=request_id,
-    )
+    try:
+        return get_object_or_404(
+            BorrowRequest.objects.select_related("user", "approved_by")
+            .prefetch_related("items__equipment"),
+            request_id=request_id,
+        )
+    except Exception:
+        logger.exception("get_borrow_detail: queryset failed (request_id=%s)", request_id)
+        raise
 
 
 def get_available_equipment():
@@ -423,10 +442,14 @@ def get_available_equipment():
     Return equipment available for borrowing (quantity > 0 and status
     available).
     """
-    return Equipment.objects.filter(
-        quantity_available__gt=0,
-        status=Equipment.STATUS_AVAILABLE,
-    ).order_by("name")
+    try:
+        return Equipment.objects.filter(
+            quantity_available__gt=0,
+            status=Equipment.STATUS_AVAILABLE,
+        ).order_by("name")
+    except Exception:
+        logger.exception("get_available_equipment: queryset failed")
+        raise
 
 
 def create_borrow_request(user, equipment_ids, quantities_map):

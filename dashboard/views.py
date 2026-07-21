@@ -239,39 +239,47 @@ def low_stock(request):
 @login_required
 def borrow_list(request):
     """List all borrow requests with search, filters, and pagination."""
-    search = request.GET.get("search", "")
-    status_filter = request.GET.get("status", "")
-    user_filter = request.GET.get("user", "")
-    date_from = request.GET.get("date_from", "")
-    date_to = request.GET.get("date_to", "")
-    order_by = request.GET.get("order_by", "-request_date")
-    page = request.GET.get("page")
+    try:
+        search = request.GET.get("search", "")
+        status_filter = request.GET.get("status", "")
+        user_filter = request.GET.get("user", "")
+        date_from = request.GET.get("date_from", "")
+        date_to = request.GET.get("date_to", "")
+        order_by = request.GET.get("order_by", "-request_date")
+        page = request.GET.get("page")
 
-    context = services.get_borrow_list_context(
-        request.user, search, status_filter, user_filter,
-        date_from, date_to, order_by, page,
-    )
-    context["profile"] = get_safe_profile(request.user)
-    return render(request, "borrow/borrow_list.html", context)
+        context = services.get_borrow_list_context(
+            request.user, search, status_filter, user_filter,
+            date_from, date_to, order_by, page,
+        )
+        context["profile"] = get_safe_profile(request.user)
+        return render(request, "borrow/borrow_list.html", context)
+    except Exception:
+        logger.exception("borrow_list view FAILED (user=%s)", request.user.pk)
+        raise
 
 
 @login_required
 def borrow_detail(request, request_id):
     """View borrow request details."""
-    borrow_request = services.get_borrow_detail(request_id)
-    profile = get_safe_profile(request.user)
+    try:
+        borrow_request = services.get_borrow_detail(request_id)
+        profile = get_safe_profile(request.user)
 
-    if not (is_admin_user(request.user) or is_staff_user(request.user) or borrow_request.user == request.user):
-        return HttpResponseForbidden("You don't have permission to view this request.")
+        if not (is_admin_user(request.user) or is_staff_user(request.user) or borrow_request.user == request.user):
+            return HttpResponseForbidden("You don't have permission to view this request.")
 
-    return render(
-        request,
-        "borrow/borrow_detail.html",
-        {
-            "borrow_request": borrow_request,
-            "profile": profile,
-        },
-    )
+        return render(
+            request,
+            "borrow/borrow_detail.html",
+            {
+                "borrow_request": borrow_request,
+                "profile": profile,
+            },
+        )
+    except Exception:
+        logger.exception("borrow_detail view FAILED (request_id=%s, user=%s)", request_id, request.user.pk)
+        raise
 
 
 @login_required
@@ -307,15 +315,19 @@ def borrow_create(request):
         )
         return redirect("borrow_detail", request_id=borrow_request.request_id)
 
-    available_equipment = services.get_available_equipment()
-    return render(
-        request,
-        "borrow/borrow_form.html",
-        {
-            "available_equipment": available_equipment,
-            "profile": get_safe_profile(request.user),
-        },
-    )
+    try:
+        available_equipment = services.get_available_equipment()
+        return render(
+            request,
+            "borrow/borrow_form.html",
+            {
+                "available_equipment": available_equipment,
+                "profile": get_safe_profile(request.user),
+            },
+        )
+    except Exception:
+        logger.exception("borrow_create GET FAILED (user=%s)", request.user.pk)
+        raise
 
 
 @login_required
