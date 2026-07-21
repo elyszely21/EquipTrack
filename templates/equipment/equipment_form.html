@@ -19,7 +19,7 @@
 
 <div class="content-card">
     <div class="card-body">
-        <form method="POST" enctype="multipart/form-data" data-disable-on-submit>
+        <form method="POST" data-disable-on-submit>
             {% csrf_token %}
 
             <div class="row">
@@ -69,27 +69,6 @@
                         <div class="text-danger">{{ form.status.errors }}</div>
                     {% endif %}
                 </div>
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label">Equipment Image</label>
-                <div class="mb-3">
-                    {{ form.image }}
-                    {% if form.image.errors %}
-                        <div class="text-danger">{{ form.image.errors }}</div>
-                    {% endif %}
-                </div>
-                {% if form.instance.pk and form.instance.image %}
-                    <div class="mb-3">
-                        <p class="text-muted small">Current image:</p>
-                        <img src="{{ form.instance.image.url }}" alt="Current equipment image" class="img-thumb-md">
-                        <div class="form-check mt-2">
-                            <input type="checkbox" name="image-clear" id="image-clear" class="form-check-input">
-                            <label for="image-clear" class="form-check-label">Remove current image</label>
-                        </div>
-                    </div>
-                {% endif %}
-                <div class="form-text">Upload an image (JPG, PNG, GIF, WebP). Maximum size: 5MB.</div>
             </div>
 
             {% if form.non_field_errors %}

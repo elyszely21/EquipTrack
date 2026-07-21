@@ -37,9 +37,9 @@ def dashboard(request):
 def equipment_list(request):
     """List all equipment with search, filters, and pagination."""
     search = request.GET.get("search", "")
-    category_filter = request.GET.get("category", "")
-    status_filter = request.GET.get("status", "")
-    stock_filter = request.GET.get("stock", "")
+    category_filter = request.GET.get("category_filter", "")
+    status_filter = request.GET.get("status_filter", "")
+    stock_filter = request.GET.get("stock_filter", "")
     order_by = request.GET.get("order_by", "name")
     page = request.GET.get("page")
 
@@ -54,16 +54,29 @@ def equipment_list(request):
 def equipment_create(request):
     """Create new equipment."""
     if request.method == "POST":
-        form = EquipmentForm(request.POST, request.FILES)
-        if form.is_valid():
+        form = EquipmentForm(request.POST)
+        try:
+            is_valid = form.is_valid()
+        except Exception:
+            logger.exception("Error validating equipment form")
+            messages.error(request, "An error occurred while validating the form. Please try again.")
+            return render(
+                request,
+                "equipment/equipment_form.html",
+                {
+                    "form": form,
+                    "title": "Add Equipment",
+                    "profile": get_safe_profile(request.user),
+                },
+            )
+        if is_valid:
             try:
                 equipment = form.save()
-            except Exception as exc:
+            except Exception:
                 logger.exception("Failed to save equipment")
                 messages.error(
                     request,
-                    "An error occurred while saving. If uploading an image, "
-                    "check that storage is configured correctly. Please try again.",
+                    "An error occurred while saving. Please try again.",
                 )
                 return render(
                     request,
@@ -98,16 +111,30 @@ def equipment_update(request, equipment_id):
     equipment = get_object_or_404(Equipment, equipment_id=equipment_id)
 
     if request.method == "POST":
-        form = EquipmentForm(request.POST, request.FILES, instance=equipment)
-        if form.is_valid():
+        form = EquipmentForm(request.POST, instance=equipment)
+        try:
+            is_valid = form.is_valid()
+        except Exception:
+            logger.exception("Error validating equipment form for %s", equipment_id)
+            messages.error(request, "An error occurred while validating the form. Please try again.")
+            return render(
+                request,
+                "equipment/equipment_form.html",
+                {
+                    "form": form,
+                    "title": "Edit Equipment",
+                    "profile": get_safe_profile(request.user),
+                    "equipment": equipment,
+                },
+            )
+        if is_valid:
             try:
                 form.save()
-            except Exception as exc:
+            except Exception:
                 logger.exception("Failed to save equipment %s", equipment_id)
                 messages.error(
                     request,
-                    "An error occurred while saving. If uploading an image, "
-                    "check that storage is configured correctly. Please try again.",
+                    "An error occurred while saving. Please try again.",
                 )
                 return render(
                     request,
@@ -176,9 +203,9 @@ def equipment_delete(request, equipment_id):
 def inventory_list(request):
     """Inventory list with stock status, search, filters, and pagination."""
     search = request.GET.get("search", "")
-    category_filter = request.GET.get("category", "")
-    status_filter = request.GET.get("status", "")
-    stock_filter = request.GET.get("stock", "")
+    category_filter = request.GET.get("category_filter", "")
+    status_filter = request.GET.get("status_filter", "")
+    stock_filter = request.GET.get("stock_filter", "")
     order_by = request.GET.get("order_by", "name")
     page = request.GET.get("page")
 
@@ -269,6 +296,10 @@ def borrow_create(request):
         except ValueError as exc:
             messages.error(request, str(exc))
             return redirect("borrow_create")
+        except Exception:
+            logger.exception("Failed to create borrow request")
+            messages.error(request, "An unexpected error occurred. Please try again.")
+            return redirect("borrow_create")
 
         messages.success(
             request,
@@ -313,6 +344,10 @@ def borrow_update(request, request_id):
         return redirect("borrow_list")
     except ValueError as exc:
         messages.error(request, str(exc))
+        return redirect("borrow_detail", request_id=request_id)
+    except Exception:
+        logger.exception("Failed to process borrow request %s", request_id)
+        messages.error(request, "An unexpected error occurred while processing the request.")
         return redirect("borrow_detail", request_id=request_id)
 
     if action == "approve":
@@ -414,6 +449,10 @@ def return_create(request, request_id):
             return redirect("borrow_list")
         except ValueError as exc:
             messages.error(request, str(exc))
+            return redirect("borrow_detail", request_id=request_id)
+        except Exception:
+            logger.exception("Failed to process return for request %s", request_id)
+            messages.error(request, "An unexpected error occurred while processing the return.")
             return redirect("borrow_detail", request_id=request_id)
 
         messages.success(request, "Return processed successfully. Stock restored.")

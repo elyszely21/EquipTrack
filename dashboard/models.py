@@ -1,19 +1,15 @@
 from django.conf import settings
-from django.core.validators import MinValueValidator, FileExtensionValidator
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 
 
 def validate_image_size(value):
-    """Validate that the uploaded image doesn't exceed MAX_UPLOAD_SIZE"""
-    max_size = getattr(settings, 'MAX_UPLOAD_SIZE', 5242880)  # 5MB default
-    if value.size > max_size:
-        raise models.ValidationError(f'Image size must be less than {max_size / 1024 / 1024}MB')
- 
+    pass
+
 
 def get_image_upload_path(instance, filename):
-    """Generate upload path for equipment images"""
-    return f'equipment_images/{instance.equipment_id}/{filename}'
+    return f"equipment_images/{instance.equipment_id}/{filename}"
 
 
 class Equipment(models.Model):
@@ -35,14 +31,9 @@ class Equipment(models.Model):
     quantity_available = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_AVAILABLE)
     image = models.ImageField(
-        upload_to=get_image_upload_path,
+        upload_to="equipment_images/",
         blank=True,
         null=True,
-        validators=[
-            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),
-            validate_image_size
-        ],
-        help_text="Upload equipment image (max 5MB, JPG/PNG/GIF/WebP)"
     )
 
     class Meta:

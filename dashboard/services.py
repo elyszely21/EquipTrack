@@ -447,11 +447,12 @@ def create_borrow_request(user, equipment_ids, quantities_map):
 
     Raises:
         ValueError: if validation fails (no items, invalid data,
-        insufficient stock, or unavailable equipment).
+        insufficient stock, unavailable equipment).
     """
     if not equipment_ids:
         raise ValueError("Select at least one piece of equipment.")
 
+    seen_ids = set()
     selected_items = []
     for eq_id in equipment_ids:
         raw_qty = quantities_map.get(eq_id, "").strip()
@@ -460,6 +461,10 @@ def create_borrow_request(user, equipment_ids, quantities_map):
             quantity = int(raw_qty)
         except (TypeError, ValueError):
             raise ValueError("Invalid equipment or quantity submitted.")
+
+        if equipment_id in seen_ids:
+            raise ValueError("Each equipment item can only be selected once.")
+        seen_ids.add(equipment_id)
 
         if quantity < 1:
             raise ValueError("Quantity must be at least 1 for each selected item.")
