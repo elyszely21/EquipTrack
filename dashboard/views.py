@@ -1,7 +1,6 @@
 import logging
 
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponseForbidden
@@ -13,7 +12,7 @@ logger = logging.getLogger(__name__)
 from .models import Equipment, BorrowRequest
 from .forms import EquipmentForm
 from . import services
-from .utils import is_admin_user, is_staff_user, is_borrower_user
+from .utils import is_admin_user, is_staff_user, is_borrower_user, get_safe_profile
 
 
 # ============================================================================
@@ -25,7 +24,7 @@ from .utils import is_admin_user, is_staff_user, is_borrower_user
 def dashboard(request):
     """Main dashboard with inventory and borrow statistics."""
     context = services.get_dashboard_context(request.user)
-    context["profile"] = request.user.profile
+    context["profile"] = get_safe_profile(request.user)
     return render(request, "dashboard/index.html", context)
 
 
@@ -47,7 +46,7 @@ def equipment_list(request):
     context = services.get_equipment_list_context(
         search, category_filter, status_filter, stock_filter, order_by, page,
     )
-    context["profile"] = request.user.profile
+    context["profile"] = get_safe_profile(request.user)
     return render(request, "equipment/equipment_list.html", context)
 
 
@@ -57,7 +56,24 @@ def equipment_create(request):
     if request.method == "POST":
         form = EquipmentForm(request.POST, request.FILES)
         if form.is_valid():
-            equipment = form.save()
+            try:
+                equipment = form.save()
+            except Exception as exc:
+                logger.exception("Failed to save equipment")
+                messages.error(
+                    request,
+                    "An error occurred while saving. If uploading an image, "
+                    "check that storage is configured correctly. Please try again.",
+                )
+                return render(
+                    request,
+                    "equipment/equipment_form.html",
+                    {
+                        "form": form,
+                        "title": "Add Equipment",
+                        "profile": get_safe_profile(request.user),
+                    },
+                )
             messages.success(request, f"Equipment '{equipment.name}' added successfully.")
             return redirect("equipment_list")
         else:
@@ -71,7 +87,7 @@ def equipment_create(request):
         {
             "form": form,
             "title": "Add Equipment",
-            "profile": request.user.profile,
+            "profile": get_safe_profile(request.user),
         },
     )
 
@@ -99,7 +115,7 @@ def equipment_update(request, equipment_id):
                     {
                         "form": form,
                         "title": "Edit Equipment",
-                        "profile": request.user.profile,
+                        "profile": get_safe_profile(request.user),
                         "equipment": equipment,
                     },
                 )
@@ -116,7 +132,7 @@ def equipment_update(request, equipment_id):
         {
             "form": form,
             "title": "Edit Equipment",
-            "profile": request.user.profile,
+            "profile": get_safe_profile(request.user),
             "equipment": equipment,
         },
     )
@@ -126,7 +142,7 @@ def equipment_update(request, equipment_id):
 def equipment_detail(request, equipment_id):
     """View equipment details and borrow history."""
     context = services.get_equipment_detail(equipment_id)
-    context["profile"] = request.user.profile
+    context["profile"] = get_safe_profile(request.user)
     return render(request, "equipment/equipment_detail.html", context)
 
 
@@ -146,7 +162,7 @@ def equipment_delete(request, equipment_id):
         "equipment/equipment_delete.html",
         {
             "equipment": equipment,
-            "profile": request.user.profile,
+            "profile": get_safe_profile(request.user),
         },
     )
 
@@ -169,7 +185,7 @@ def inventory_list(request):
     context = services.get_inventory_list_context(
         search, category_filter, status_filter, stock_filter, order_by, page,
     )
-    context["profile"] = request.user.profile
+    context["profile"] = get_safe_profile(request.user)
     return render(request, "inventory/inventory_list.html", context)
 
 
@@ -183,7 +199,7 @@ def low_stock(request):
         {
             "low_stock_items": low_stock_items,
             "out_of_stock_items": out_of_stock_items,
-            "profile": request.user.profile,
+            "profile": get_safe_profile(request.user),
         },
     )
 
@@ -208,7 +224,7 @@ def borrow_list(request):
         request.user, search, status_filter, user_filter,
         date_from, date_to, order_by, page,
     )
-    context["profile"] = request.user.profile
+    context["profile"] = get_safe_profile(request.user)
     return render(request, "borrow/borrow_list.html", context)
 
 
@@ -216,12 +232,7 @@ def borrow_list(request):
 def borrow_detail(request, request_id):
     """View borrow request details."""
     borrow_request = services.get_borrow_detail(request_id)
-
-    try:
-        profile = request.user.profile
-    except ObjectDoesNotExist:
-        messages.error(request, "Your user profile is missing. Please contact an administrator.")
-        return redirect("dashboard")
+    profile = get_safe_profile(request.user)
 
     if not (is_admin_user(request.user) or is_staff_user(request.user) or borrow_request.user == request.user):
         return HttpResponseForbidden("You don't have permission to view this request.")
@@ -271,7 +282,7 @@ def borrow_create(request):
         "borrow/borrow_form.html",
         {
             "available_equipment": available_equipment,
-            "profile": request.user.profile,
+            "profile": get_safe_profile(request.user),
         },
     )
 
@@ -345,7 +356,7 @@ def borrow_delete(request, request_id):
         "borrow/borrow_delete.html",
         {
             "borrow_request": borrow_request,
-            "profile": request.user.profile,
+            "profile": get_safe_profile(request.user),
         },
     )
 
@@ -368,7 +379,7 @@ def return_list(request):
     context = services.get_return_list_context(
         request.user, search, status_filter, date_from, date_to, order_by, page,
     )
-    context["profile"] = request.user.profile
+    context["profile"] = get_safe_profile(request.user)
     return render(request, "return/return_list.html", context)
 
 
@@ -418,7 +429,7 @@ def return_create(request, request_id):
         "return/return_form.html",
         {
             "borrow_request": borrow_request,
-            "profile": request.user.profile,
+            "profile": get_safe_profile(request.user),
         },
     )
 
@@ -439,7 +450,7 @@ def return_detail(request, transaction_id):
         "return/return_detail.html",
         {
             "return_record": return_record,
-            "profile": request.user.profile,
+            "profile": get_safe_profile(request.user),
         },
     )
 
@@ -460,7 +471,7 @@ def reports(request):
     date_to = request.GET.get("date_to", "")
 
     context = services.get_reports_context()
-    context["profile"] = request.user.profile
+    context["profile"] = get_safe_profile(request.user)
     context["period"] = period
     context["date_from"] = date_from
     context["date_to"] = date_to
