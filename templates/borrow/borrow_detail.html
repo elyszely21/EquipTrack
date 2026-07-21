@@ -58,7 +58,7 @@
             </div>
         </div>
 
-        {% if borrow_request.status == 'pending' and profile.role == 'admin' %}
+        {% if borrow_request.status == 'pending' and (profile.role == 'admin' or profile.role == 'staff') %}
             <div class="content-card mb-4">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="bi bi-check-circle me-2"></i>Approval Actions</h5>
@@ -142,7 +142,7 @@
             </div>
         </div>
 
-        {% if borrow_request.status == 'pending' and borrow_request.user == request.user %}
+        {% if borrow_request.status == 'pending' and (borrow_request.user == request.user or profile.role == 'admin' or profile.role == 'staff') %}
             <div class="content-card">
                 <div class="card-body">
                     <a href="{% url 'borrow_delete' borrow_request.request_id %}" class="btn btn-danger w-100">

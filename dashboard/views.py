@@ -1,9 +1,14 @@
+import logging
+
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponseForbidden
 from django.utils import timezone
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 from .models import Equipment, BorrowRequest
 from .forms import EquipmentForm
@@ -79,7 +84,25 @@ def equipment_update(request, equipment_id):
     if request.method == "POST":
         form = EquipmentForm(request.POST, request.FILES, instance=equipment)
         if form.is_valid():
-            form.save()
+            try:
+                form.save()
+            except Exception as exc:
+                logger.exception("Failed to save equipment %s", equipment_id)
+                messages.error(
+                    request,
+                    "An error occurred while saving. If uploading an image, "
+                    "check that storage is configured correctly. Please try again.",
+                )
+                return render(
+                    request,
+                    "equipment/equipment_form.html",
+                    {
+                        "form": form,
+                        "title": "Edit Equipment",
+                        "profile": request.user.profile,
+                        "equipment": equipment,
+                    },
+                )
             messages.success(request, f"Equipment '{equipment.name}' updated successfully.")
             return redirect("equipment_list")
         else:
@@ -194,6 +217,12 @@ def borrow_detail(request, request_id):
     """View borrow request details."""
     borrow_request = services.get_borrow_detail(request_id)
 
+    try:
+        profile = request.user.profile
+    except ObjectDoesNotExist:
+        messages.error(request, "Your user profile is missing. Please contact an administrator.")
+        return redirect("dashboard")
+
     if not (is_admin_user(request.user) or is_staff_user(request.user) or borrow_request.user == request.user):
         return HttpResponseForbidden("You don't have permission to view this request.")
 
@@ -202,7 +231,7 @@ def borrow_detail(request, request_id):
         "borrow/borrow_detail.html",
         {
             "borrow_request": borrow_request,
-            "profile": request.user.profile,
+            "profile": profile,
         },
     )
 
@@ -258,8 +287,8 @@ def borrow_update(request, request_id):
     if request.method != "POST":
         return redirect("borrow_detail", request_id=request_id)
 
-    if not is_admin_user(request.user):
-        return HttpResponseForbidden("Only administrators can approve or reject borrow requests.")
+    if not (is_admin_user(request.user) or is_staff_user(request.user)):
+        return HttpResponseForbidden("Only administrators and staff can approve or reject borrow requests.")
 
     action = request.POST.get("action")
     if action not in ("approve", "reject"):
@@ -294,11 +323,8 @@ def borrow_delete(request, request_id):
     borrow_request = get_object_or_404(BorrowRequest, request_id=request_id)
 
     is_owner = borrow_request.user_id == request.user.id
-    if not (is_admin_user(request.user) or is_owner):
+    if not (is_admin_user(request.user) or is_staff_user(request.user) or is_owner):
         return HttpResponseForbidden("You don't have permission to delete this request.")
-
-    if is_staff_user(request.user) and not is_admin_user(request.user):
-        return HttpResponseForbidden("Staff cannot delete borrow requests.")
 
     if borrow_request.status != BorrowRequest.STATUS_PENDING:
         messages.error(request, "Only pending requests can be deleted.")

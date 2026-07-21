@@ -52,13 +52,13 @@
                                     <i class="bi bi-eye"></i> View
                                 </a>
 
-                                {% if profile.role == "borrower" and borrow.status == "pending" %}
+                                {% if borrow.status == "pending" and (borrow.user == request.user or profile.role == "admin" or profile.role == "staff") %}
                                     <a href="{% url 'borrow_delete' borrow.request_id %}" class="btn btn-sm btn-danger" aria-label="Delete borrow request {{ borrow.request_id }}">
                                         <i class="bi bi-trash"></i> Delete
                                     </a>
                                 {% endif %}
 
-                                {% if profile.role == "admin" and borrow.status == "pending" %}
+                                {% if (profile.role == "admin" or profile.role == "staff") and borrow.status == "pending" %}
                                     <form method="post" action="{% url 'borrow_update' borrow.request_id %}" class="d-inline" data-disable-on-submit>
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="approve">
